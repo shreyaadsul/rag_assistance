@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from utils import load_pdf, split_text, create_embeddings, store_in_faiss, create_llm
+from utils import load_pdf, split_text, create_embeddings, store_in_faiss, create_llm, evaluate_answer
 
 def main():
     # Load environment variables from .env file
@@ -39,56 +39,89 @@ def main():
         print("Failed to create FAISS vector store.")
         return
         
-    # 5. Retrieval step
-    print("--- Retrieval System Ready ---")
-    query = input("Enter your search query: ")
+    # 5. Interactive Multi-Query Loop
+    print("\n--- Retrieval System Ready ---")
+    print("Type 'exit' to stop the program.\n")
     
-    if not query.strip():
-        print("Empty query provided. Exiting.")
-        return
+    # Initialize the LLM once before the loop
+    llm = create_llm()
+    
+    while True:
+        query = input("\nEnter your search query: ")
         
-    print(f"\nSearching for top 3 results for: '{query}'...")
-    
-    # Perform similarity search to get top k=3 chunks
-    results = vector_store.similarity_search(query, k=3)
-    
-    # Print the retrieved chunks along with their metadata
-    print("\n--- Search Results ---")
-    for i, doc in enumerate(results, start=1):
-        print(f"Result #{i}")
-        print(f"Metadata: {doc.metadata}")
-        print(f"Content:\n{doc.page_content}")
-        print("-" * 50)
+        # Handle empty input
+        if not query.strip():
+            print("Empty query provided. Please try again.")
+            continue
+            
+        # Exit condition
+        if query.strip().lower() == 'exit':
+            print("Exiting the interactive system. Goodbye!")
+            break
+            
+        print(f"\nSearching for top 3 results for: '{query}'...")
+        
+        # Perform similarity search to get top k=3 chunks
+        results = vector_store.similarity_search(query, k=3)
+        
+        # Print the retrieved chunks along with their metadata
+        print("\n--- Search Results ---")
+        for i, doc in enumerate(results, start=1):
+            print(f"Result #{i}")
+            print(f"Metadata: {doc.metadata}")
+            print(f"Content:\n{doc.page_content}")
+            print("-" * 50)
 
-    # 6. LLM Generation step
-    if not results:
-        print("\nNo results found in the document to answer your query.")
-        return
+        # 6. LLM Generation step
+        if not results:
+            print("\nNo results found in the document to answer your query.")
+            continue
 
-    print("\nGenerating answer...")
-    
-    # Combine the retrieved content into a single context string
-    context = "\n\n".join([doc.page_content for doc in results])
-    
-    # Create the prompt combining context and user query
-    prompt = f"""Answer the question using ONLY the context below. If the answer is not in the context, say 'Not found'.
+        print("\nGenerating answer...")
+        
+        # Combine the retrieved content into a single context string
+        context = "\n\n".join([doc.page_content for doc in results])
+        
+        # Create the prompt combining context and user query
+        prompt = f"""You are an AI assistant.
+
+Answer the question using ONLY the provided context.
+If the answer is not found in the context, say "Not found".
+
+Be:
+- Accurate
+- Complete
+- Concise
 
 Context:
 {context}
 
-Question: {query}
+Question:
+{query}
+
+Answer:
 """
 
-    # Initialize the LLM and generate the response
-    llm = create_llm()
-    response = llm.invoke(prompt)
-    
-    # Print the final generated answer clearly
-    print("\n" + "="*50)
-    print("FINAL ANSWER:")
-    print("="*50)
-    print(response.content)
-    print("="*50)
+        # Generate the response
+        response = llm.invoke(prompt)
+        answer = response.content
+        
+        # Print the final generated answer clearly
+        print("\n" + "="*50)
+        print("FINAL ANSWER:")
+        print("="*50)
+        print(answer)
+        print("="*50)
+
+        # 7. Evaluation step
+        print("\nEvaluating answer...")
+        evaluation = evaluate_answer(context, answer)
+        
+        print("\n" + "="*50)
+        print("EVALUATION RESULT:")
+        print("="*50)
+        print(evaluation)
+        print("="*50)
 
 if __name__ == "__main__":
     main()

@@ -113,3 +113,33 @@ def create_llm():
         
     # Model changed to llama-3.1-8b-instant due to llama3-8b-8192 deprecation
     return ChatGroq(model_name="llama-3.1-8b-instant", temperature=0)
+
+def evaluate_answer(context, answer):
+    """
+    Evaluates the generated answer against the retrieved context to check for factual correctness,
+    completeness, and hallucination. Uses the same Groq LLM.
+    """
+    eval_prompt = f"""You are an AI evaluator.
+
+Given:
+Context:
+{context}
+
+Answer:
+{answer}
+
+Evaluate the answer based ONLY on the context.
+
+Check:
+1. Is the answer factually correct?
+2. Is it fully supported by the context?
+3. Is any important information missing?
+
+Give output in this format:
+Score: <number from 0 to 10>
+Verdict: <Correct / Partially Correct / Incorrect>
+Reason: <short explanation>"""
+
+    llm = create_llm()
+    eval_response = llm.invoke(eval_prompt)
+    return eval_response.content
