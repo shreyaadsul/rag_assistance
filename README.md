@@ -1,165 +1,188 @@
-# 🧠 Advanced RAG AI Assistant with Answer Evaluation
+# 🚀 Advanced RAG Assistant with Answer Evaluation
 
-## 📌 Overview
+An advanced Retrieval-Augmented Generation (RAG) system built using Flask, FAISS, HuggingFace Embeddings, and Groq LLM.
 
-This project implements a **Retrieval-Augmented Generation (RAG) system** that answers questions from documents using vector search and LLMs.
+This project allows users to upload PDF documents, ask context-aware questions, retrieve relevant document chunks using vector similarity search, generate AI-powered answers, and evaluate answer correctness using an intelligent evaluation module.
 
-Unlike basic RAG systems, this project introduces an **Answer Evaluation Layer**, making it more reliable, explainable, and research-oriented.
+# 🧠 Project Features
 
----
+## ✅ PDF Upload System
 
-## 🚀 Features
+* Upload PDF documents dynamically
+* Automatic document processing pipeline
 
-- 📄 PDF Document Processing
-- 🔍 Smart Chunking (Recursive Text Splitter)
-- 🧠 Embeddings using HuggingFace
-- 📦 Vector Database (FAISS)
-- 🔎 Top-K Retrieval System
-- 🤖 LLM-based Answer Generation (Groq - LLaMA 3.1)
-- 📊 **Answer Evaluation System (CORE FEATURE)**
-  - Score (0–10)
-  - Verdict (Correct / Partial / Incorrect)
-  - Reasoning
-- 🔁 Multi-query interactive system
-- 📍 Metadata tracking (source, page, chunk_id)
+## ✅ Smart Chunking
 
----
+* Recursive text chunking
+* Chunk overlap support
+* Metadata preservation
 
-## 🧠 System Architecture
+## ✅ Semantic Retrieval
 
+* HuggingFace Embeddings
+* FAISS Vector Database
+* Top-k similarity search
 
-User Question
-↓
+## ✅ AI Answer Generation
+
+* Groq LLM integration
+* Context-grounded responses
+* Reduced hallucination approach
+
+## ✅ Answer Evaluation System ⭐
+
+* Score generated answers
+* Verdict generation
+* Reasoning explanation
+* Self-evaluating RAG pipeline
+
+## ✅ Flask Web UI
+
+* Modern dark-themed interface
+* Upload PDFs
+* Ask questions interactively
+* View answers and evaluation results
+
+# ⚙️ System Architecture
+
+```text
+User Query
+    ↓
 Embedding Model
-↓
-FAISS Vector DB
-↓
-Top-K Relevant Chunks
-↓
-LLM (Groq)
-↓
-Generated Answer
-↓
-Evaluation System (LLM)
-↓
-Score + Verdict + Reason
+    ↓
+FAISS Vector Database
+    ↓
+Top-K Retrieval
+    ↓
+Groq LLM (Answer Generation)
+    ↓
+Answer Evaluation Module
+    ↓
+Final Output (Answer + Score + Verdict)
+```
 
+# 🧪 Research Experiments
 
----
-
-## ⚙️ Tech Stack
-
-- Python
-- LangChain
-- FAISS
-- HuggingFace Embeddings
-- Groq LLM (LLaMA 3.1)
-- PyPDF2
-
----
-
-## 📂 Project Structure
-
-
-rag-assistant/
-├── app.py # Main application
-├── utils.py # Helper functions
-├── data/ # PDF files
-├── requirements.txt
-└── README.md
-
-
----
-
-## 🧪 Experiments (Research Component)
-
-### 🔬 Experiment 1: Chunk Size Optimization
+## 🔹 Chunk Size Experiment
 
 | Chunk Size | Avg Score |
-|------------|----------|
-| 300        | 8.67     |
-| 500        | ⭐ 9.33   |
-| 800        | 9.0      |
+| ---------- | --------- |
+| 300        | 8.67      |
+| 500        | 9.33 ⭐    |
+| 800        | 9.0       |
 
-👉 **Best: 500**
+Best performance achieved at chunk size = 500.
 
----
-
-### 🔬 Experiment 2: Top-K Retrieval
+## 🔹 Top-K Retrieval Experiment
 
 | K Value | Avg Score |
-|--------|----------|
-| 2      | 8.67     |
-| 3      | ⭐ 9.0    |
-| 5      | 9.0      |
+| ------- | --------- |
+| 2       | 8.67      |
+| 3       | 9.0 ⭐     |
+| 5       | 9.0       |
 
-👉 **Best: k = 3**
+Best retrieval performance achieved at k = 3.
 
----
+## 🔹 Prompt Engineering
 
-### 🔬 Experiment 3: Prompt Engineering
+| Prompt Type | Behavior                          |
+| ----------- | --------------------------------- |
+| Basic       | Detailed responses                |
+| Strict      | Controlled and grounded responses |
 
-| Prompt Type | Avg Score | Behavior |
-|-------------|----------|----------|
-| Basic       | ⭐ 9.33   | Detailed |
-| Strict      | 9.0      | Controlled |
+# 🔥 Research Contribution
 
----
+This project focuses on improving RAG reliability using:
 
-## 🧠 Key Insights
+* retrieval optimization
+* answer evaluation
+* hallucination reduction
+* grounded AI response generation
 
-- Moderate chunk sizes (500) give best balance of context + precision  
-- Retrieval size (k = 3) provides optimal context without noise  
-- Prompt design affects:
-  - Completeness
-  - Hallucination control  
+Unlike traditional RAG systems that only generate answers, this system also evaluates the correctness and contextual grounding of generated responses.
 
----
+# 🛠️ Technologies Used
 
-## 🔥 Core Innovation
+* Python
+* Flask
+* FAISS
+* HuggingFace Embeddings
+* Groq LLM
+* LangChain
+* HTML/CSS
+* RecursiveCharacterTextSplitter
 
-### ✅ Answer Evaluation System
+# 📂 Project Structure
 
-Unlike traditional RAG:
+```text
+rag_assistant/
+│
+├── app.py
+├── utils.py
+├── requirements.txt
+├── templates/
+├── static/
+├── uploads/
+└── data/
+```
 
-👉 This system evaluates its own answers
+# ▶️ How to Run
 
-**Output:**
-
-Score: 9
-Verdict: Correct
-Reason: Answer is supported by context but missing minor detail
-
-
----
-
-## 🛠️ Installation
+## 1. Clone Repository
 
 ```bash
-git clone https://github.com/your-username/rag-assistant.git
-cd rag-assistant
+git clone <your-repo-link>
+cd rag_assistant
+```
+
+## 2. Install Requirements
+
+```bash
 pip install -r requirements.txt
-▶️ Run the Project
+```
+
+## 3. Add Environment Variables
+
+Create a `.env` file:
+
+```env
+GROQ_API_KEY=your_api_key
+```
+
+## 4. Run Application
+
+```bash
 python app.py
+```
 
-Then:
+Open:
 
-Enter your query: What is insurance?
-📈 Example Output
-FINAL ANSWER:
-Life insurance provides financial protection...
+```text
+http://127.0.0.1:5000
+```
 
-EVALUATION:
-Score: 9
-Verdict: Correct
-Reason: Accurate but missing minor detail
-🎯 Future Improvements
-Web UI (Streamlit / React)
-Multi-document support
-Chat memory
-API deployment (FastAPI)
+# 📄 Research Paper
 
-👩‍💻 Author
+**Title:**
+Improving Retrieval-Augmented Generation Systems using Answer Evaluation and Retrieval Optimization
+
+This research explores:
+
+* retrieval quality
+* chunking optimization
+* prompt engineering
+* answer evaluation systems
+* RAG reliability improvements
+
+# 🚀 Future Improvements
+
+* Multi-document support
+* Confidence scoring
+* Chat memory
+* Advanced reranking
+* Better summarization pipeline
+
+# 👩‍💻 Author
 Shreya Adsul
-AIML Student
-Interested in AI Systems, NLP, and Automation
+TY B.Sc. CS (AIML)
+Nagindas Khandwala College

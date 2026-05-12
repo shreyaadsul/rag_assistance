@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Assistant - Premium AI Document Intelligence</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Beautiful Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <h1>RAG <span>Assistant</span></h1>
+            </div>
+            <p class="subtitle">Interact with your documents using advanced FAISS Retrieval & Groq LLM</p>
+            <div class="phase-badge">Advanced Retrieval-Augmented Generation System</div>
+        </header>
+
+        <!-- Main Content Grid Layout -->
+        <main class="main-grid">
+            <!-- Left Column: Document Management & Upload -->
+            <section class="panel upload-panel">
+                <div class="panel-header">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <h2>Document Knowledge Base</h2>
+                </div>
+                <p class="panel-desc">Upload your PDF document to chunk, generate embeddings, and prepare the FAISS vector database.</p>
+                
+                <!-- Upload Form -->
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="file-drop-area" id="fileDropArea">
+                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                        <span class="file-msg">Drag & Drop your PDF here or <span class="browse-link">Browse</span></span>
+                        <input class="file-input" type="file" name="pdf_file" id="pdfFile" accept=".pdf" required>
+                    </div>
+                    <!-- Display selected file info -->
+                    <div id="fileInfo" class="file-info hidden">
+                        <i class="fa-solid fa-file-lines file-info-icon"></i>
+                        <span id="fileName" class="file-name"></span>
+                        <button type="button" id="removeFileBtn" class="remove-file-btn" title="Remove file"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <button type="submit" class="btn primary-btn upload-btn" id="uploadBtn">
+                        <span class="btn-text"><i class="fa-solid fa-arrow-up-from-bracket"></i> Upload & Process PDF</span>
+                        <span class="loader hidden"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</span>
+                    </button>
+                </form>
+
+                <!-- Status / Feedback Message Box -->
+                <div id="uploadStatus" class="status-box hidden"></div>
+            </section>
+
+            <!-- Right Column: Query Input & Answer Generation Section -->
+            <section class="panel query-panel">
+                <div class="panel-header">
+                    <i class="fa-solid fa-message"></i>
+                    <h2>Ask RAG Assistant</h2>
+                </div>
+                <p class="panel-desc">Ask any question based on the uploaded document context.</p>
+
+                <!-- Question Form -->
+                <form id="askForm" method="POST" enctype="multipart/form-data">
+                    <div class="input-group">
+                        <label for="questionInput">Your Question</label>
+                        <textarea id="questionInput" name="question" rows="4" placeholder="e.g., What are the key terms and conditions specified in the document?" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn gradient-btn ask-btn" id="askBtn">
+                        <span class="btn-text"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Answer</span>
+                        <span class="loader hidden"><i class="fa-solid fa-circle-notch fa-spin"></i> Generating response...</span>
+                    </button>
+                </form>
+
+                <!-- Response Section -->
+                <div class="response-section" id="responseSection">
+                    <div class="placeholder-state" id="responsePlaceholder">
+                        <i class="fa-regular fa-comments placeholder-icon"></i>
+                        <p>Your generated response and evaluation metrics will appear here.</p>
+                    </div>
+
+                    <!-- Animated Processing/Loading System -->
+                    <div class="processing-state hidden" id="processingState">
+                        <div class="processing-spinner">
+                            <div class="glow-ring"></div>
+                            <i class="fa-solid fa-brain processing-icon"></i>
+                        </div>
+                        <h3 class="processing-title">AI Processing Pipeline</h3>
+                        <div class="processing-steps">
+                            <div class="step-item" id="stepRetrieval">
+                                <span class="step-indicator"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+                                <span class="step-text">Retrieving context<span class="animated-dots"></span></span>
+                            </div>
+                            <div class="step-item pending" id="stepGeneration">
+                                <span class="step-indicator"><i class="fa-solid fa-circle"></i></span>
+                                <span class="step-text">Generating answer<span class="animated-dots"></span></span>
+                            </div>
+                            <div class="step-item pending" id="stepEvaluation">
+                                <span class="step-indicator"><i class="fa-solid fa-circle"></i></span>
+                                <span class="step-text">Evaluating response<span class="animated-dots"></span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Populated Answers View -->
+                    <div class="response-content hidden" id="responseContent">
+                        <div class="answer-card">
+                            <div class="card-header">
+                                <span class="badge success-badge"><i class="fa-solid fa-check"></i> Answer Generated</span>
+                                <span class="groq-tag"><i class="fa-solid fa-bolt"></i> Powered by Groq</span>
+                            </div>
+                            <h3>Final Answer</h3>
+                            <div class="answer-text" id="answerText"></div>
+                        </div>
+
+                        <div class="eval-card">
+                            <div class="card-header">
+                                <span class="badge eval-badge"><i class="fa-solid fa-chart-simple"></i> System Evaluation</span>
+                            </div>
+                            <h3>Evaluation Result</h3>
+                            <pre class="eval-text" id="evalText"></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Built using Flask, FAISS, HuggingFace Embeddings, and Groq LLM</p>
+        </footer>
+    </div>
+
+    <!-- Custom Frontend Logic for Interactivity (Beginner-friendly & modular) -->
+    <script>
+        // DOM Elements
+        const fileDropArea = document.getElementById('fileDropArea');
+        const fileInput = document.getElementById('pdfFile');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const removeFileBtn = document.getElementById('removeFileBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadStatus = document.getElementById('uploadStatus');
+        
+        const askForm = document.getElementById('askForm');
+        const askBtn = document.getElementById('askBtn');
+        const questionInput = document.getElementById('questionInput');
+        const responsePlaceholder = document.getElementById('responsePlaceholder');
+        const responseContent = document.getElementById('responseContent');
+        const answerText = document.getElementById('answerText');
+        const evalText = document.getElementById('evalText');
+
+        // --- File Upload UI Handling ---
+        
+        // Highlight drop area on drag over
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileDropArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileDropArea.classList.add('active');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileDropArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileDropArea.classList.remove('active');
+            }, false);
+        });
+
+        // Handle file dropped
+        fileDropArea.addEventListener('drop', (e) => {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            if (files.length) {
+                fileInput.files = files;
+                updateFileInfo();
+            }
+        });
+
+        // Handle file selected via click browse
+        fileInput.addEventListener('change', updateFileInfo);
+
+        function updateFileInfo() {
+            if (fileInput.files.length > 0) {
+                fileName.textContent = fileInput.files[0].name;
+                fileDropArea.classList.add('hidden');
+                fileInfo.classList.remove('hidden');
+                // Hide any previous error messages
+                uploadStatus.classList.add('hidden');
+            } else {
+                fileDropArea.classList.remove('hidden');
+                fileInfo.classList.add('hidden');
+            }
+        }
+
+        removeFileBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            updateFileInfo();
+        });
+
+        // --- Form Submission Logic (AJAX / Fetch) ---
+
+        // 1. Handle PDF Upload Submission
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!fileInput.files.length) {
+                showStatus('uploadStatus', 'error', 'Please select a PDF file first.');
+                return;
+            }
+
+            // Set Loading state
+            setButtonLoading(uploadBtn, true);
+            uploadStatus.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('pdf_file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.status === 'success') {
+                    showStatus('uploadStatus', 'success', result.message);
+                } else {
+                    showStatus('uploadStatus', 'error', result.message || 'Upload failed.');
+                }
+            } catch (error) {
+                console.error('Upload Error:', error);
+                showStatus('uploadStatus', 'error', 'Server error during upload. Check console.');
+            } finally {
+                setButtonLoading(uploadBtn, false);
+            }
+        });
+
+        // 2. Handle Ask Question Submission
+        askForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            // Ensure PDF file is selected before submission
+            if (!fileInput.files.length) {
+                alert('Please select a PDF file in the left panel before asking a question.');
+                return;
+            }
+
+            // Set Loading state
+            setButtonLoading(askBtn, true);
+            
+            // Smoothly hide previous answer and show loading state if needed
+            responsePlaceholder.classList.add('hidden');
+            responseContent.classList.add('hidden');
+            
+            // Prepare and reveal AI Processing Pipeline progress state
+            const processingState = document.getElementById('processingState');
+            const stepRetrieval = document.getElementById('stepRetrieval');
+            const stepGeneration = document.getElementById('stepGeneration');
+            const stepEvaluation = document.getElementById('stepEvaluation');
+            
+            processingState.classList.remove('hidden');
+            responseSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Reset state items to initial animated state
+            stepRetrieval.className = 'step-item';
+            stepRetrieval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            stepGeneration.className = 'step-item pending';
+            stepGeneration.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
+            stepEvaluation.className = 'step-item pending';
+            stepEvaluation.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
+
+            // Lightweight simulation timers mapping standard background phase transitions
+            const timer1 = setTimeout(() => {
+                stepRetrieval.className = 'step-item completed';
+                stepRetrieval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                stepGeneration.className = 'step-item';
+                stepGeneration.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            }, 1200);
+
+            const timer2 = setTimeout(() => {
+                stepGeneration.className = 'step-item completed';
+                stepGeneration.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                stepEvaluation.className = 'step-item';
+                stepEvaluation.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            }, 3000);
+
+            // Construct FormData to support multipart/form-data backend routing
+            const formData = new FormData();
+            formData.append('question', question);
+            formData.append('pdf_file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // Clear ongoing simulated transitions
+                clearTimeout(timer1);
+                clearTimeout(timer2);
+                
+                // Finalize all status checks visually
+                stepRetrieval.className = 'step-item completed';
+                stepRetrieval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                stepGeneration.className = 'step-item completed';
+                stepGeneration.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                stepEvaluation.className = 'step-item completed';
+                stepEvaluation.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                
+                // Pause slightly to give a visual satisfaction of completion before cards reveal
+                await new Promise(r => setTimeout(r, 400));
+                processingState.classList.add('hidden');
+
+                if (response.ok && result.status === 'success') {
+                    // Populate UI
+                    answerText.innerHTML = `<p>${result.answer.replace(/\n/g, '<br>')}</p>`;
+                    evalText.textContent = result.evaluation;
+                    
+                    // Reveal Response content with custom CSS fade-in sequence
+                    responseContent.classList.remove('hidden');
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to generate response.'));
+                    responsePlaceholder.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Ask Error:', error);
+                clearTimeout(timer1);
+                clearTimeout(timer2);
+                processingState.classList.add('hidden');
+                alert('An error occurred while connecting to the server.');
+                responsePlaceholder.classList.remove('hidden');
+            } finally {
+                setButtonLoading(askBtn, false);
+            }
+        });
+
+        // --- Utility Helper Functions ---
+
+        function setButtonLoading(btnElement, isLoading) {
+            const btnText = btnElement.querySelector('.btn-text');
+            const loader = btnElement.querySelector('.loader');
+            
+            if (isLoading) {
+                btnElement.disabled = true;
+                btnText.classList.add('hidden');
+                loader.classList.remove('hidden');
+            } else {
+                btnElement.disabled = false;
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        }
+
+        function showStatus(elementId, type, message) {
+            const statusBox = document.getElementById(elementId);
+            statusBox.className = `status-box ${type}`;
+            
+            const iconClass = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+            statusBox.innerHTML = `<i class="fa-solid ${iconClass}"></i> <span>${message}</span>`;
+            statusBox.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
