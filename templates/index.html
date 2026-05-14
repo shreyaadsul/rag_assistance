@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAG Assistant - Premium AI Document Intelligence</title>
-    <!-- Google Fonts: Outfit -->
+    <title>RAG Assistant - Premium AI Observability Dashboard</title>
+    <!-- Google Fonts: Outfit & Inter for premium typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome for Beautiful Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Stylesheet -->
@@ -15,135 +15,323 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header Section -->
+        <!-- Top App Navigation / Header -->
         <header class="app-header">
-            <div class="logo-container">
+            <div class="header-left">
                 <div class="logo-icon">
-                    <i class="fa-solid fa-brain"></i>
+                    <i class="fa-solid fa-circle-nodes"></i>
                 </div>
-                <h1>RAG <span>Assistant</span></h1>
+                <div class="logo-text">
+                    <h1>RAG <span>Observability</span></h1>
+                    <span class="enterprise-tag">Research-Grade Document Intelligence</span>
+                </div>
             </div>
-            <p class="subtitle">Interact with your documents using advanced FAISS Retrieval & Groq LLM</p>
-            <div class="phase-badge">Advanced Retrieval-Augmented Generation System</div>
+            <div class="header-right">
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span class="status-label">FAISS Core Online</span>
+                </div>
+                <div class="engine-badge"><i class="fa-solid fa-bolt"></i> Groq Accelerated API</div>
+            </div>
         </header>
 
-        <!-- Main Content Grid Layout -->
-        <main class="main-grid">
-            <!-- Left Column: Document Management & Upload -->
-            <section class="panel upload-panel">
-                <div class="panel-header">
-                    <i class="fa-solid fa-file-pdf"></i>
-                    <h2>Document Knowledge Base</h2>
+        <!-- Main 2-Column Dashboard Grid Layout -->
+        <main class="dashboard-grid">
+            
+            <!-- LEFT PANEL: Ingestion & Live Pipeline Observability -->
+            <section class="left-panel">
+                <!-- PDF Upload & Knowledge Base Module -->
+                <div class="premium-card upload-module">
+                    <div class="card-header-main">
+                        <div class="header-title">
+                            <i class="fa-solid fa-database accent-icon"></i>
+                            <h2>Knowledge Ingestion</h2>
+                        </div>
+                    </div>
+                    <p class="module-desc">Mount your PDF document to chunk, vectorize, and establish FAISS structural indices.</p>
+                    
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="file-drop-area" id="fileDropArea">
+                            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                            <span class="file-msg">Drag & Drop PDF here or <span class="browse-link">Browse</span></span>
+                            <input class="file-input" type="file" name="pdf_file" id="pdfFile" accept=".pdf" required>
+                        </div>
+                        
+                        <div id="fileInfo" class="file-info hidden">
+                            <div class="file-info-left">
+                                <i class="fa-solid fa-file-pdf file-info-icon"></i>
+                                <span id="fileName" class="file-name"></span>
+                            </div>
+                            <button type="button" id="removeFileBtn" class="remove-file-btn" title="Remove mounted file"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+
+                        <button type="submit" class="btn primary-btn upload-btn" id="uploadBtn">
+                            <span class="btn-text"><i class="fa-solid fa-arrow-up-from-bracket"></i> Process Vector Store</span>
+                            <span class="loader hidden"><i class="fa-solid fa-circle-notch fa-spin"></i> Indexing Space...</span>
+                        </button>
+                    </form>
+                    <div id="uploadStatus" class="status-box hidden"></div>
                 </div>
-                <p class="panel-desc">Upload your PDF document to chunk, generate embeddings, and prepare the FAISS vector database.</p>
-                
-                <!-- Upload Form -->
-                <form id="uploadForm" enctype="multipart/form-data">
-                    <div class="file-drop-area" id="fileDropArea">
-                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                        <span class="file-msg">Drag & Drop your PDF here or <span class="browse-link">Browse</span></span>
-                        <input class="file-input" type="file" name="pdf_file" id="pdfFile" accept=".pdf" required>
-                    </div>
-                    <!-- Display selected file info -->
-                    <div id="fileInfo" class="file-info hidden">
-                        <i class="fa-solid fa-file-lines file-info-icon"></i>
-                        <span id="fileName" class="file-name"></span>
-                        <button type="button" id="removeFileBtn" class="remove-file-btn" title="Remove file"><i class="fa-solid fa-xmark"></i></button>
+
+                <!-- Live Pipeline Observability Status Module -->
+                <div class="premium-card pipeline-module hidden" id="processingState">
+                    <div class="pipeline-progress-container">
+                        <div class="pipeline-progress-bar" id="pipelineProgressBar"></div>
                     </div>
 
-                    <button type="submit" class="btn primary-btn upload-btn" id="uploadBtn">
-                        <span class="btn-text"><i class="fa-solid fa-arrow-up-from-bracket"></i> Upload & Process PDF</span>
-                        <span class="loader hidden"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</span>
-                    </button>
-                </form>
-
-                <!-- Status / Feedback Message Box -->
-                <div id="uploadStatus" class="status-box hidden"></div>
-            </section>
-
-            <!-- Right Column: Query Input & Answer Generation Section -->
-            <section class="panel query-panel">
-                <div class="panel-header">
-                    <i class="fa-solid fa-message"></i>
-                    <h2>Ask RAG Assistant</h2>
-                </div>
-                <p class="panel-desc">Ask any question based on the uploaded document context.</p>
-
-                <!-- Question Form -->
-                <form id="askForm" method="POST" enctype="multipart/form-data">
-                    <div class="input-group">
-                        <label for="questionInput">Your Question</label>
-                        <textarea id="questionInput" name="question" rows="4" placeholder="e.g., What are the key terms and conditions specified in the document?" required></textarea>
-                    </div>
-
-                    <button type="submit" class="btn gradient-btn ask-btn" id="askBtn">
-                        <span class="btn-text"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Answer</span>
-                        <span class="loader hidden"><i class="fa-solid fa-circle-notch fa-spin"></i> Generating response...</span>
-                    </button>
-                </form>
-
-                <!-- Response Section -->
-                <div class="response-section" id="responseSection">
-                    <div class="placeholder-state" id="responsePlaceholder">
-                        <i class="fa-regular fa-comments placeholder-icon"></i>
-                        <p>Your generated response and evaluation metrics will appear here.</p>
-                    </div>
-
-                    <!-- Animated Processing/Loading System -->
-                    <div class="processing-state hidden" id="processingState">
+                    <div class="processing-header-wrap">
                         <div class="processing-spinner">
                             <div class="glow-ring"></div>
-                            <i class="fa-solid fa-brain processing-icon"></i>
+                            <i class="fa-solid fa-microchip processing-icon"></i>
                         </div>
-                        <h3 class="processing-title">AI Processing Pipeline</h3>
-                        <div class="processing-steps">
-                            <div class="step-item" id="stepRetrieval">
-                                <span class="step-indicator"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-                                <span class="step-text">Retrieving context<span class="animated-dots"></span></span>
-                            </div>
-                            <div class="step-item pending" id="stepGeneration">
-                                <span class="step-indicator"><i class="fa-solid fa-circle"></i></span>
-                                <span class="step-text">Generating answer<span class="animated-dots"></span></span>
-                            </div>
-                            <div class="step-item pending" id="stepEvaluation">
-                                <span class="step-indicator"><i class="fa-solid fa-circle"></i></span>
-                                <span class="step-text">Evaluating response<span class="animated-dots"></span></span>
-                            </div>
+                        <div class="processing-title-wrap">
+                            <h3 class="processing-title">Pipeline Execution</h3>
+                            <span class="processing-subtitle">Benchmarking telemetry active</span>
                         </div>
                     </div>
 
-                    <!-- Populated Answers View -->
-                    <div class="response-content hidden" id="responseContent">
-                        <div class="answer-card">
-                            <div class="card-header">
-                                <span class="badge success-badge"><i class="fa-solid fa-check"></i> Answer Generated</span>
-                                <span class="groq-tag"><i class="fa-solid fa-bolt"></i> Powered by Groq</span>
+                    <div class="processing-steps">
+                        <div class="step-item" id="stepRetrieval">
+                            <span class="step-indicator"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+                            <span class="step-text">Retrieving distance chunks<span class="typing-dots"></span></span>
+                            <span class="step-timer" id="timerRetrieval">0.00s</span>
+                        </div>
+                        <div class="step-item pending" id="stepGeneration">
+                            <span class="step-indicator"><i class="fa-solid fa-circle"></i></span>
+                            <span class="step-text">Synthesizing LLM answer<span class="typing-dots"></span></span>
+                            <span class="step-timer" id="timerGeneration">0.00s</span>
+                        </div>
+                        <div class="step-item pending" id="stepEvaluation">
+                            <span class="step-indicator"><i class="fa-solid fa-circle"></i></span>
+                            <span class="step-text">Multi-metric evaluation<span class="typing-dots"></span></span>
+                            <span class="step-timer" id="timerEvaluation">0.00s</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: Query Input & Multi-Tab Observability Workspace -->
+            <section class="right-panel workspace-column">
+                <!-- Query Prompt Input Section -->
+                <div class="premium-card query-module">
+                    <form id="askForm" method="POST" enctype="multipart/form-data">
+                        <div class="input-wrapper">
+                            <textarea id="questionInput" name="question" rows="2" placeholder="Ask your intelligent document assistant..." required></textarea>
+                            <button type="submit" class="btn gradient-btn ask-btn" id="askBtn" title="Execute Query">
+                                <span class="btn-text"><i class="fa-solid fa-arrow-right"></i></span>
+                                <span class="loader hidden"><i class="fa-solid fa-spinner fa-spin"></i></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Main Output Pane -->
+                <div class="workspace-output-area">
+                    <!-- Premium Tabs Navigation -->
+                    <div class="tabs-nav hidden" id="tabsNav">
+                        <button class="tab-btn active" data-target="tabOverview"><i class="fa-solid fa-layer-group"></i> Overview</button>
+                        <button class="tab-btn" data-target="tabRetrieval"><i class="fa-solid fa-network-wired"></i> Retrieval <span class="tab-badge" id="retrievalCountBadge">0</span></button>
+                        <button class="tab-btn" data-target="tabEvaluation"><i class="fa-solid fa-chart-pie"></i> Evaluation</button>
+                        <button class="tab-btn" data-target="tabAnalysis"><i class="fa-solid fa-circle-info"></i> Analysis</button>
+                    </div>
+
+                    <!-- Placeholder State before first query -->
+                    <div class="placeholder-state" id="responsePlaceholder">
+                        <div class="placeholder-ring">
+                            <i class="fa-solid fa-wand-magic-sparkles placeholder-icon"></i>
+                        </div>
+                        <h3>AI Research Workspace Ready</h3>
+                        <p>Submit a query above to initiate context retrieval, live metric benchmarking, and cross-reference evaluation validation.</p>
+                    </div>
+
+                    <!-- Populated Tab Contents System -->
+                    <div class="tabs-content-wrapper hidden" id="tabsContentWrapper">
+                        
+                        <!-- TAB 1: Overview Panel -->
+                        <div class="tab-pane active" id="tabOverview">
+                            <!-- High Level Dashboard Ribbon -->
+                            <div class="overview-ribbon">
+                                <div class="ribbon-item">
+                                    <span class="ribbon-label">Overall Verdict</span>
+                                    <span class="verdict-tag" id="overviewVerdict">Unreliable</span>
+                                </div>
+                                <div class="ribbon-item">
+                                    <span class="ribbon-label">Confidence Meter</span>
+                                    <div class="ribbon-meter-wrap">
+                                        <div class="ribbon-meter-track">
+                                            <div class="ribbon-meter-fill" id="overviewConfidenceFill" style="width: 0%;"></div>
+                                        </div>
+                                        <span class="ribbon-val" id="overviewConfidenceVal">0%</span>
+                                    </div>
+                                </div>
                             </div>
-                            <h3>Final Answer</h3>
-                            <div class="answer-text" id="answerText"></div>
+                            
+                            <!-- Synthesized Answer Canvas -->
+                            <div class="premium-card final-answer-card">
+                                <div class="card-header-mini">
+                                    <span class="badge answer-badge"><i class="fa-solid fa-check-double"></i> Grounded Synthesized Response</span>
+                                </div>
+                                <div class="answer-content-canvas" id="answerText"></div>
+                            </div>
                         </div>
 
-                        <div class="eval-card">
-                            <div class="card-header">
-                                <span class="badge eval-badge"><i class="fa-solid fa-chart-simple"></i> System Evaluation</span>
+                        <!-- TAB 2: Retrieval Intelligence Accordion Panel -->
+                        <div class="tab-pane" id="tabRetrieval">
+                            <div class="premium-card retrieval-panel-card">
+                                <!-- Top Stats Array -->
+                                <div class="retrieval-stats-row">
+                                    <div class="stat-item">
+                                        <span class="stat-lbl">Avg Relevance</span>
+                                        <span class="stat-num" id="retAvg">0%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-lbl">Highest Relevance</span>
+                                        <span class="stat-num" id="retMax">0%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-lbl">Weakest Chunk</span>
+                                        <span class="stat-num" id="retMin">0%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-lbl">Quality Indicator</span>
+                                        <span class="verdict-tag" id="retQualityBadge">Good</span>
+                                    </div>
+                                </div>
+
+                                <!-- Collapsible Accordions Array -->
+                                <div class="accordion-container" id="accordionContainer">
+                                    <!-- Injected dynamically via JavaScript -->
+                                </div>
                             </div>
-                            <h3>Evaluation Result</h3>
-                            <pre class="eval-text" id="evalText"></pre>
                         </div>
+
+                        <!-- TAB 3: Compact Premium Evaluation Metrics Row -->
+                        <div class="tab-pane" id="tabEvaluation">
+                            <div class="evaluation-metrics-row">
+                                <!-- Correctness Mini Card -->
+                                <div class="metric-compact-card">
+                                    <div class="metric-top">
+                                        <span class="metric-icon-wrap bg-blue"><i class="fa-solid fa-bullseye"></i></span>
+                                        <span class="metric-name">Correctness</span>
+                                    </div>
+                                    <span class="metric-main-value highlight-text" id="evalCorrectness">0/10</span>
+                                </div>
+
+                                <!-- Confidence Mini Card -->
+                                <div class="metric-compact-card">
+                                    <div class="metric-top">
+                                        <span class="metric-icon-wrap bg-purple"><i class="fa-solid fa-shield-halved"></i></span>
+                                        <span class="metric-name">Confidence</span>
+                                    </div>
+                                    <span class="metric-main-value highlight-text" id="evalConfidence">0%</span>
+                                </div>
+
+                                <!-- Hallucination Risk Mini Card -->
+                                <div class="metric-compact-card">
+                                    <div class="metric-top">
+                                        <span class="metric-icon-wrap bg-amber"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                                        <span class="metric-name">Hallucination Risk</span>
+                                    </div>
+                                    <span class="risk-badge" id="evalHallucination">High</span>
+                                </div>
+
+                                <!-- Completeness Mini Card -->
+                                <div class="metric-compact-card">
+                                    <div class="metric-top">
+                                        <span class="metric-icon-wrap bg-emerald"><i class="fa-solid fa-circle-half-stroke"></i></span>
+                                        <span class="metric-name">Completeness</span>
+                                    </div>
+                                    <span class="completeness-badge" id="evalCompleteness">Low</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: Analysis Reasoning Panel & Performance Graph -->
+                        <div class="tab-pane" id="tabAnalysis">
+                            <div class="analysis-grid-layout">
+                                <!-- Top Reasoning Log -->
+                                <div class="premium-card analysis-log-card">
+                                    <div class="card-header-mini">
+                                        <span class="badge analysis-badge"><i class="fa-solid fa-microscope"></i> Diagnostic Verification Reasoning Log</span>
+                                    </div>
+                                    <div class="reasoning-rich-text" id="evalReasonText"></div>
+                                </div>
+
+                                <!-- Bottom Visual Telemetry Graph -->
+                                <div class="premium-card telemetry-graph-card">
+                                    <div class="card-header-mini">
+                                        <span class="badge graph-badge"><i class="fa-solid fa-chart-column"></i> RAG Lifecycle Observability Graph</span>
+                                        <span class="graph-subtitle">Telemetry comparison across ingestion, retrieval confidence, and LLM verification mapping</span>
+                                    </div>
+
+                                    <!-- Elegant Pure CSS Bar Chart Graph Canvas -->
+                                    <div class="observability-chart-wrapper">
+                                        <div class="chart-bars-container">
+                                            
+                                            <!-- Pillar 1: Retrieval Relevance -->
+                                            <div class="chart-pillar">
+                                                <div class="pillar-track">
+                                                    <div class="pillar-fill bg-cyan" id="graphRetrievalFill" style="height: 0%;">
+                                                        <span class="pillar-val" id="graphRetrievalVal">0%</span>
+                                                    </div>
+                                                </div>
+                                                <span class="pillar-lbl">Avg Retrieval<br>Relevance</span>
+                                            </div>
+
+                                            <!-- Pillar 2: Contextual Confidence -->
+                                            <div class="chart-pillar">
+                                                <div class="pillar-track">
+                                                    <div class="pillar-fill bg-purple" id="graphConfidenceFill" style="height: 0%;">
+                                                        <span class="pillar-val" id="graphConfidenceVal">0%</span>
+                                                    </div>
+                                                </div>
+                                                <span class="pillar-lbl">Grounding<br>Confidence</span>
+                                            </div>
+
+                                            <!-- Pillar 3: Synthesis Correctness -->
+                                            <div class="chart-pillar">
+                                                <div class="pillar-track">
+                                                    <div class="pillar-fill bg-emerald" id="graphCorrectnessFill" style="height: 0%;">
+                                                        <span class="pillar-val" id="graphCorrectnessVal">0%</span>
+                                                    </div>
+                                                </div>
+                                                <span class="pillar-lbl">Synthesis<br>Correctness</span>
+                                            </div>
+
+                                            <!-- Pillar 4: Weighted Global Pipeline Index -->
+                                            <div class="chart-pillar">
+                                                <div class="pillar-track">
+                                                    <div class="pillar-fill bg-gradient-accent" id="graphGlobalFill" style="height: 0%;">
+                                                        <span class="pillar-val" id="graphGlobalVal">0%</span>
+                                                    </div>
+                                                </div>
+                                                <span class="pillar-lbl highlight-text">Global Pipeline<br>Index</span>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- Background Grid Lines -->
+                                        <div class="chart-grid-lines">
+                                            <div class="grid-line"><span class="grid-num">100%</span></div>
+                                            <div class="grid-line"><span class="grid-num">75%</span></div>
+                                            <div class="grid-line"><span class="grid-num">50%</span></div>
+                                            <div class="grid-line"><span class="grid-num">25%</span></div>
+                                            <div class="grid-line"><span class="grid-num">0%</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
         </main>
-
-        <!-- Footer -->
-        <footer class="app-footer">
-            <p>Built using Flask, FAISS, HuggingFace Embeddings, and Groq LLM</p>
-        </footer>
     </div>
 
-    <!-- Custom Frontend Logic for Interactivity (Beginner-friendly & modular) -->
+    <!-- Frontend Interactive Control Engine -->
     <script>
-        // DOM Elements
+        // File Handling Nodes
         const fileDropArea = document.getElementById('fileDropArea');
         const fileInput = document.getElementById('pdfFile');
         const fileInfo = document.getElementById('fileInfo');
@@ -153,44 +341,53 @@
         const uploadBtn = document.getElementById('uploadBtn');
         const uploadStatus = document.getElementById('uploadStatus');
         
+        // Query Handling Nodes
         const askForm = document.getElementById('askForm');
         const askBtn = document.getElementById('askBtn');
         const questionInput = document.getElementById('questionInput');
         const responsePlaceholder = document.getElementById('responsePlaceholder');
-        const responseContent = document.getElementById('responseContent');
-        const answerText = document.getElementById('answerText');
-        const evalText = document.getElementById('evalText');
-
-        // --- File Upload UI Handling ---
         
-        // Highlight drop area on drag over
-        ['dragenter', 'dragover'].forEach(eventName => {
-            fileDropArea.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+        // Workspace System Nodes
+        const tabsNav = document.getElementById('tabsNav');
+        const tabsContentWrapper = document.getElementById('tabsContentWrapper');
+        const answerText = document.getElementById('answerText');
+        const processingState = document.getElementById('processingState');
+        const pipelineProgressBar = document.getElementById('pipelineProgressBar');
+
+        // Tab Event Wiring
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                
+                btn.classList.add('active');
+                const targetId = btn.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // --- File Ingestion Event System ---
+        ['dragenter', 'dragover'].forEach(evt => {
+            fileDropArea.addEventListener(evt, (e) => {
+                e.preventDefault(); e.stopPropagation();
                 fileDropArea.classList.add('active');
             }, false);
         });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            fileDropArea.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+        ['dragleave', 'drop'].forEach(evt => {
+            fileDropArea.addEventListener(evt, (e) => {
+                e.preventDefault(); e.stopPropagation();
                 fileDropArea.classList.remove('active');
             }, false);
         });
 
-        // Handle file dropped
         fileDropArea.addEventListener('drop', (e) => {
-            let dt = e.dataTransfer;
-            let files = dt.files;
-            if (files.length) {
-                fileInput.files = files;
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
                 updateFileInfo();
             }
         });
 
-        // Handle file selected via click browse
         fileInput.addEventListener('change', updateFileInfo);
 
         function updateFileInfo() {
@@ -198,7 +395,6 @@
                 fileName.textContent = fileInput.files[0].name;
                 fileDropArea.classList.add('hidden');
                 fileInfo.classList.remove('hidden');
-                // Hide any previous error messages
                 uploadStatus.classList.add('hidden');
             } else {
                 fileDropArea.classList.remove('hidden');
@@ -211,173 +407,315 @@
             updateFileInfo();
         });
 
-        // --- Form Submission Logic (AJAX / Fetch) ---
-
-        // 1. Handle PDF Upload Submission
+        // --- Form Upload API Action ---
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             if (!fileInput.files.length) {
-                showStatus('uploadStatus', 'error', 'Please select a PDF file first.');
+                showStatus('uploadStatus', 'error', 'Mount a target PDF document first.');
                 return;
             }
 
-            // Set Loading state
             setButtonLoading(uploadBtn, true);
             uploadStatus.classList.add('hidden');
-
             const formData = new FormData();
             formData.append('pdf_file', fileInput.files[0]);
 
             try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok && result.status === 'success') {
-                    showStatus('uploadStatus', 'success', result.message);
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    showStatus('uploadStatus', 'success', data.message);
                 } else {
-                    showStatus('uploadStatus', 'error', result.message || 'Upload failed.');
+                    showStatus('uploadStatus', 'error', data.message || 'Ingestion vector processing failed.');
                 }
-            } catch (error) {
-                console.error('Upload Error:', error);
-                showStatus('uploadStatus', 'error', 'Server error during upload. Check console.');
+            } catch (err) {
+                showStatus('uploadStatus', 'error', 'Network failure during file stream transport.');
             } finally {
                 setButtonLoading(uploadBtn, false);
             }
         });
 
-        // 2. Handle Ask Question Submission
+        // --- Execute Query Action Pipeline ---
         askForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const question = questionInput.value.trim();
-            if (!question) return;
+            const queryText = questionInput.value.trim();
+            if (!queryText) return;
 
-            // Ensure PDF file is selected before submission
             if (!fileInput.files.length) {
-                alert('Please select a PDF file in the left panel before asking a question.');
+                alert('Please upload/select a PDF file in the left panel to establish a contextual vector baseline.');
                 return;
             }
 
-            // Set Loading state
+            // Lock UI and reset view layers
             setButtonLoading(askBtn, true);
-            
-            // Smoothly hide previous answer and show loading state if needed
             responsePlaceholder.classList.add('hidden');
-            responseContent.classList.add('hidden');
+            tabsNav.classList.add('hidden');
+            tabsContentWrapper.classList.add('hidden');
             
-            // Prepare and reveal AI Processing Pipeline progress state
-            const processingState = document.getElementById('processingState');
-            const stepRetrieval = document.getElementById('stepRetrieval');
-            const stepGeneration = document.getElementById('stepGeneration');
-            const stepEvaluation = document.getElementById('stepEvaluation');
-            
+            // Unhide Left Panel Observability Pipeline
             processingState.classList.remove('hidden');
-            responseSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            // Reset state items to initial animated state
-            stepRetrieval.className = 'step-item';
-            stepRetrieval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            stepGeneration.className = 'step-item pending';
-            stepGeneration.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
-            stepEvaluation.className = 'step-item pending';
-            stepEvaluation.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
+            processingState.classList.remove('fade-collapse');
+            pipelineProgressBar.style.width = '0%';
 
-            // Lightweight simulation timers mapping standard background phase transitions
-            const timer1 = setTimeout(() => {
-                stepRetrieval.className = 'step-item completed';
-                stepRetrieval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
-                stepGeneration.className = 'step-item';
-                stepGeneration.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            }, 1200);
+            // Reset Pipeline timing telemetry
+            const stepRet = document.getElementById('stepRetrieval');
+            const stepGen = document.getElementById('stepGeneration');
+            const stepEval = document.getElementById('stepEvaluation');
+            const tRet = document.getElementById('timerRetrieval');
+            const tGen = document.getElementById('timerGeneration');
+            const tEval = document.getElementById('timerEvaluation');
 
-            const timer2 = setTimeout(() => {
-                stepGeneration.className = 'step-item completed';
-                stepGeneration.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
-                stepEvaluation.className = 'step-item';
-                stepEvaluation.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            }, 3000);
+            stepRet.className = 'step-item active';
+            stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            tRet.textContent = '0.00s';
 
-            // Construct FormData to support multipart/form-data backend routing
-            const formData = new FormData();
-            formData.append('question', question);
-            formData.append('pdf_file', fileInput.files[0]);
+            stepGen.className = 'step-item pending';
+            stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
+            tGen.textContent = '0.00s';
+
+            stepEval.className = 'step-item pending';
+            stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
+            tEval.textContent = '0.00s';
+
+            // High speed precision timers
+            let activePhase = 1;
+            let startT = performance.now();
+            const timerEngine = setInterval(() => {
+                const sec = ((performance.now() - startT) / 1000).toFixed(2);
+                if (activePhase === 1) tRet.textContent = sec + 's';
+                else if (activePhase === 2) tGen.textContent = sec + 's';
+                else if (activePhase === 3) tEval.textContent = sec + 's';
+            }, 30);
+
+            setTimeout(() => { pipelineProgressBar.style.width = '20%'; }, 50);
+
+            // Phase 1 -> 2 handover simulation checkpoint
+            const phase1Timer = setTimeout(() => {
+                if (activePhase === 1) {
+                    activePhase = 2;
+                    startT = performance.now();
+                    stepRet.className = 'step-item completed';
+                    stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                    
+                    stepGen.className = 'step-item active';
+                    stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                    pipelineProgressBar.style.width = '60%';
+                }
+            }, 800);
+
+            const payload = new FormData();
+            payload.append('question', queryText);
+            payload.append('pdf_file', fileInput.files[0]);
 
             try {
-                const response = await fetch('/ask', {
-                    method: 'POST',
-                    body: formData
-                });
+                const apiRes = await fetch('/ask', { method: 'POST', body: payload });
+                const jsonOut = await apiRes.json();
 
-                const result = await response.json();
+                clearTimeout(phase1Timer);
+                if (activePhase === 1) {
+                    stepRet.className = 'step-item completed';
+                    stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                }
 
-                // Clear ongoing simulated transitions
-                clearTimeout(timer1);
-                clearTimeout(timer2);
+                activePhase = 3;
+                startT = performance.now();
+                stepGen.className = 'step-item completed';
+                stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
                 
-                // Finalize all status checks visually
-                stepRetrieval.className = 'step-item completed';
-                stepRetrieval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
-                stepGeneration.className = 'step-item completed';
-                stepGeneration.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
-                stepEvaluation.className = 'step-item completed';
-                stepEvaluation.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                stepEval.className = 'step-item active';
+                stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                pipelineProgressBar.style.width = '85%';
+
+                await new Promise(res => setTimeout(res, 500));
+
+                clearInterval(timerEngine);
+                stepEval.className = 'step-item completed';
+                stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                pipelineProgressBar.style.width = '100%';
+
+                await new Promise(res => setTimeout(res, 350));
                 
-                // Pause slightly to give a visual satisfaction of completion before cards reveal
-                await new Promise(r => setTimeout(r, 400));
+                // Hide pipeline observability module gracefully
                 processingState.classList.add('hidden');
 
-                if (response.ok && result.status === 'success') {
-                    // Populate UI
-                    answerText.innerHTML = `<p>${result.answer.replace(/\n/g, '<br>')}</p>`;
-                    evalText.textContent = result.evaluation;
+                if (apiRes.ok && jsonOut.status === 'success') {
+                    // Inject Synthesized Payload Data
+                    answerText.innerHTML = `<p>${jsonOut.answer.replace(/\n/g, '<br>')}</p>`;
                     
-                    // Reveal Response content with custom CSS fade-in sequence
-                    responseContent.classList.remove('hidden');
+                    const ev = jsonOut.evaluation || {};
+                    const corr = ev.correctness_score !== undefined ? ev.correctness_score : 0;
+                    const conf = ev.confidence_score !== undefined ? ev.confidence_score : 0;
+                    const risk = ev.hallucination_risk || 'High';
+                    const comp = ev.completeness || 'Low';
+                    const verd = ev.verdict || 'Unreliable';
+                    const reason = ev.detailed_reason || 'No specific reasoning captured.';
+
+                    // Overview Ribbon Mapping
+                    const overVerdEl = document.getElementById('overviewVerdict');
+                    overVerdEl.textContent = verd;
+                    overVerdEl.className = `verdict-tag verd-${verd.replace(/\s+/g, '-').toLowerCase()}`;
+                    document.getElementById('overviewConfidenceVal').textContent = `${conf}%`;
+                    setTimeout(() => {
+                        document.getElementById('overviewConfidenceFill').style.width = `${conf}%`;
+                    }, 50);
+
+                    // Evaluation Tab Mapping
+                    document.getElementById('evalCorrectness').textContent = `${corr}/10`;
+                    document.getElementById('evalConfidence').textContent = `${conf}%`;
+                    
+                    const hallEl = document.getElementById('evalHallucination');
+                    hallEl.textContent = risk;
+                    hallEl.className = `risk-badge risk-${risk.toLowerCase()}`;
+                    
+                    const compEl = document.getElementById('evalCompleteness');
+                    compEl.textContent = comp;
+                    compEl.className = `completeness-badge comp-${comp.toLowerCase()}`;
+
+                    // Analysis Tab Mapping
+                    document.getElementById('evalReasonText').innerHTML = `<p>${reason.replace(/\n/g, '<br>')}</p>`;
+
+                    // Retrieval Tab Dynamic Mapping
+                    const retChunks = jsonOut.retrieval_scores || [];
+                    document.getElementById('retrievalCountBadge').textContent = retChunks.length;
+                    
+                    const accordionWrap = document.getElementById('accordionContainer');
+                    if (retChunks.length > 0) {
+                        let totalScore = 0;
+                        let maxScore = -1;
+                        let minScore = 101;
+                        let itemsDom = '';
+
+                        retChunks.forEach(item => {
+                            const rVal = item.relevance;
+                            totalScore += rVal;
+                            if (rVal > maxScore) maxScore = rVal;
+                            if (rVal < minScore) minScore = rVal;
+
+                            let colorTier = 'match-weak';
+                            let barTier = 'bg-weak';
+                            if (rVal >= 90) { colorTier = 'match-excellent'; barTier = 'bg-excellent'; }
+                            else if (rVal >= 70) { colorTier = 'match-strong'; barTier = 'bg-strong'; }
+                            else if (rVal >= 50) { colorTier = 'match-moderate'; barTier = 'bg-moderate'; }
+
+                            itemsDom += `
+                                <div class="accordion-item">
+                                    <div class="accordion-header">
+                                        <div class="acc-header-left">
+                                            <span class="acc-toggle-icon"><i class="fa-solid fa-chevron-right"></i></span>
+                                            <span class="acc-chunk-label">Chunk ${item.chunk_id}</span>
+                                            <span class="acc-page-label">Page ${item.page}</span>
+                                        </div>
+                                        <div class="acc-header-right">
+                                            <div class="acc-mini-bar-track">
+                                                <div class="acc-mini-bar-fill ${barTier}" style="width: ${rVal}%;"></div>
+                                            </div>
+                                            <span class="acc-relevance-val ${colorTier}">${rVal}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="accordion-body">
+                                        <div class="acc-body-content">
+                                            <span class="preview-badge">Distance Score: ${item.raw_score.toFixed(4)}</span>
+                                            <p class="preview-text">${item.preview}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        const avgVal = Math.round(totalScore / retChunks.length);
+                        document.getElementById('retAvg').textContent = `${avgVal}%`;
+                        document.getElementById('retMax').textContent = `${maxScore}%`;
+                        document.getElementById('retMin').textContent = `${minScore}%`;
+
+                        let badgeText = 'Weak';
+                        let badgeStyle = 'verd-unreliable';
+                        if (avgVal >= 80) { badgeText = 'Excellent'; badgeStyle = 'verd-reliable'; }
+                        else if (avgVal >= 60) { badgeText = 'Good'; badgeStyle = 'verd-partially-reliable'; }
+                        
+                        const qBadge = document.getElementById('retQualityBadge');
+                        qBadge.textContent = badgeText;
+                        qBadge.className = `verdict-tag ${badgeStyle}`;
+
+                        accordionWrap.innerHTML = itemsDom;
+                    } else {
+                        accordionWrap.innerHTML = '<p class="empty-retrieval">No relevant context chunks returned above default matching thresholds.</p>';
+                    }
+
+                    // Populate Telemetry Graph Values calculations
+                    let avgRetrievalScore = 0;
+                    if (retChunks.length > 0) {
+                        let tot = 0;
+                        retChunks.forEach(c => tot += c.relevance);
+                        avgRetrievalScore = Math.round(tot / retChunks.length);
+                    }
+                    const scaledCorrectness = corr * 10;
+                    const globalIndex = Math.round((avgRetrievalScore * 0.35) + (conf * 0.35) + (scaledCorrectness * 0.30));
+
+                    // Animate graph pillars smoothly
+                    setTimeout(() => {
+                        document.getElementById('graphRetrievalVal').textContent = `${avgRetrievalScore}%`;
+                        document.getElementById('graphRetrievalFill').style.height = `${avgRetrievalScore}%`;
+
+                        document.getElementById('graphConfidenceVal').textContent = `${conf}%`;
+                        document.getElementById('graphConfidenceFill').style.height = `${conf}%`;
+
+                        document.getElementById('graphCorrectnessVal').textContent = `${scaledCorrectness}%`;
+                        document.getElementById('graphCorrectnessFill').style.height = `${scaledCorrectness}%`;
+
+                        document.getElementById('graphGlobalVal').textContent = `${globalIndex}%`;
+                        document.getElementById('graphGlobalFill').style.height = `${globalIndex}%`;
+                    }, 150);
+
+                    // Reveal Workspace Panels
+                    tabsNav.classList.remove('hidden');
+                    tabsContentWrapper.classList.remove('hidden');
+                    
+                    // Force select active tab Overview
+                    document.querySelector('.tab-btn[data-target="tabOverview"]').click();
                 } else {
-                    alert('Error: ' + (result.message || 'Failed to generate response.'));
+                    alert('Server Handshake Error: ' + (jsonOut.message || 'Validation failed.'));
                     responsePlaceholder.classList.remove('hidden');
                 }
-            } catch (error) {
-                console.error('Ask Error:', error);
-                clearTimeout(timer1);
-                clearTimeout(timer2);
+            } catch (err) {
+                clearInterval(timerEngine);
                 processingState.classList.add('hidden');
-                alert('An error occurred while connecting to the server.');
+                alert('Connection execution failure during API synthesis.');
                 responsePlaceholder.classList.remove('hidden');
             } finally {
                 setButtonLoading(askBtn, false);
             }
         });
 
-        // --- Utility Helper Functions ---
+        // --- Collapsible Accordion Delegator Logic ---
+        document.getElementById('accordionContainer').addEventListener('click', (e) => {
+            const head = e.target.closest('.accordion-header');
+            if (head) {
+                const node = head.closest('.accordion-item');
+                node.classList.toggle('expanded');
+            }
+        });
 
-        function setButtonLoading(btnElement, isLoading) {
-            const btnText = btnElement.querySelector('.btn-text');
-            const loader = btnElement.querySelector('.loader');
-            
-            if (isLoading) {
-                btnElement.disabled = true;
-                btnText.classList.add('hidden');
-                loader.classList.remove('hidden');
+        // --- Universal Loading Status Setters ---
+        function setButtonLoading(btn, isLd) {
+            const txt = btn.querySelector('.btn-text');
+            const ldr = btn.querySelector('.loader');
+            if (isLd) {
+                btn.disabled = true;
+                txt.classList.add('hidden');
+                ldr.classList.remove('hidden');
             } else {
-                btnElement.disabled = false;
-                btnText.classList.remove('hidden');
-                loader.classList.add('hidden');
+                btn.disabled = false;
+                txt.classList.remove('hidden');
+                ldr.classList.add('hidden');
             }
         }
 
-        function showStatus(elementId, type, message) {
-            const statusBox = document.getElementById(elementId);
-            statusBox.className = `status-box ${type}`;
-            
-            const iconClass = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
-            statusBox.innerHTML = `<i class="fa-solid ${iconClass}"></i> <span>${message}</span>`;
-            statusBox.classList.remove('hidden');
+        function showStatus(id, tier, msg) {
+            const el = document.getElementById(id);
+            el.className = `status-box ${tier}`;
+            const icon = tier === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+            el.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
+            el.classList.remove('hidden');
         }
     </script>
 </body>

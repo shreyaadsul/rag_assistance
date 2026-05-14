@@ -142,23 +142,53 @@ def ask_question():
         # 1. Pipeline Verification: Ensure document vector store is ready
         vector_store = process_and_store_pdf(file_path)
 
-        # 2. Retrieval Flow: Search for top k=3 relevant context snippets
-        print(f"[INFO] Executing FAISS similarity search for query: '{question}'")
-        results = vector_store.similarity_search(question, k=3)
+        # 2. Retrieval Flow: Search for top k=5 relevant context snippets with distance scores
+        print(f"[INFO] Executing FAISS similarity search with scoring for query: '{question}'")
+        results_with_scores = vector_store.similarity_search_with_score(question, k=5)
 
-        if not results:
+        if not results_with_scores:
             return jsonify({
                 "status": "success",
                 "answer": "Unable to generate a reliable response from retrieved context. Try asking a more specific question.",
-                "evaluation": "Score: 0/10\nVerdict: Incorrect\nReason: Query context absent from vector database."
+                "evaluation": {
+                    "correctness_score": 0,
+                    "confidence_score": 0,
+                    "hallucination_risk": "High",
+                    "completeness": "Low",
+                    "verdict": "Unreliable",
+                    "detailed_reason": "Query context absent from vector database. Cannot verify answer."
+                },
+                "retrieval_scores": []
             })
 
-        # Append optional retrieved source pages for transparent dynamic UI rendering
+        # Process retrieved chunks and construct metadata analytics list
+        retrieval_scores = []
+        results = []
         source_pages = []
-        for doc in results:
+
+        for idx, (doc, score) in enumerate(results_with_scores, start=1):
+            results.append(doc)
             page_num = doc.metadata.get('page', 'Unknown')
             if page_num not in source_pages:
                 source_pages.append(str(page_num))
+                
+            # Convert distance -> relevance percentage using normalized logic
+            # Lower distance = better match. Suggested approach: relevance = max(0, min(100, int((1 - score) * 100)))
+            relevance = max(0, min(100, int((1.0 - float(score)) * 100)))
+            
+            # Create mini chunk preview
+            preview = doc.page_content.strip()
+            if len(preview) > 120:
+                preview = preview[:120] + "..."
+                
+            retrieval_scores.append({
+                "chunk_id": idx,
+                "page": page_num,
+                "relevance": relevance,
+                "raw_score": float(score),
+                "preview": preview,
+                "content": doc.page_content
+            })
         
         sources_footer = f"\n\n[Retrieved Context Sources: Page(s) {', '.join(source_pages)}]"
 
@@ -204,7 +234,8 @@ Answer:
         return jsonify({
             "status": "success",
             "answer": final_rendered_answer,
-            "evaluation": evaluation_result.strip()
+            "evaluation": evaluation_result,
+            "retrieval_scores": retrieval_scores
         })
 
     except Exception as e:
