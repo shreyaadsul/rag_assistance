@@ -48,13 +48,13 @@
                             <h2>Knowledge Ingestion</h2>
                         </div>
                     </div>
-                    <p class="module-desc">Mount your PDF document to chunk, vectorize, and establish FAISS structural indices.</p>
+                    <p class="module-desc">Mount your PDF documents to chunk, vectorize, and establish FAISS structural indices.</p>
                     
                     <form id="uploadForm" enctype="multipart/form-data">
                         <div class="file-drop-area" id="fileDropArea">
                             <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                            <span class="file-msg">Drag & Drop PDF here or <span class="browse-link">Browse</span></span>
-                            <input class="file-input" type="file" name="pdf_file" id="pdfFile" accept=".pdf" required>
+                            <span class="file-msg">Drag & Drop PDFs here or <span class="browse-link">Browse</span></span>
+                            <input class="file-input" type="file" name="pdf_file" id="pdfFile" accept=".pdf" multiple required>
                         </div>
                         
                         <div id="fileInfo" class="file-info hidden">
@@ -62,7 +62,7 @@
                                 <i class="fa-solid fa-file-pdf file-info-icon"></i>
                                 <span id="fileName" class="file-name"></span>
                             </div>
-                            <button type="button" id="removeFileBtn" class="remove-file-btn" title="Remove mounted file"><i class="fa-solid fa-xmark"></i></button>
+                            <button type="button" id="removeFileBtn" class="remove-file-btn" title="Clear selection"><i class="fa-solid fa-xmark"></i></button>
                         </div>
 
                         <button type="submit" class="btn primary-btn upload-btn" id="uploadBtn">
@@ -71,6 +71,23 @@
                         </button>
                     </form>
                     <div id="uploadStatus" class="status-box hidden"></div>
+                </div>
+
+                <!-- Documents Manager Module -->
+                <div class="premium-card documents-module">
+                    <div class="card-header-main">
+                        <div class="header-title">
+                            <i class="fa-solid fa-folder-tree accent-icon"></i>
+                            <h2>Documents Indexed</h2>
+                        </div>
+                    </div>
+                    <p class="module-desc">Manage vector embeddings across your Multi-Document RAG workspace.</p>
+                    
+                    <div class="doc-list-container">
+                        <ul id="docList" class="doc-list">
+                            <li class="doc-item empty-state"><i class="fa-solid fa-ghost"></i> No documents indexed yet.</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <!-- Live Pipeline Observability Status Module -->
@@ -114,7 +131,14 @@
             <section class="right-panel workspace-column">
                 <!-- Query Prompt Input Section -->
                 <div class="premium-card query-module">
-                    <form id="askForm" method="POST" enctype="multipart/form-data">
+                    <form id="askForm" method="POST">
+                        <div class="query-filters">
+                            <label for="docFilter" class="filter-label"><i class="fa-solid fa-layer-group"></i> Target Workspace</label>
+                            <select name="doc_filter" id="docFilter" class="premium-select">
+                                <option value="all">Cross-Document Retrieval (All)</option>
+                                <!-- Dynamic options injected here -->
+                            </select>
+                        </div>
                         <div class="input-wrapper">
                             <textarea id="questionInput" name="question" rows="2" placeholder="Ask your intelligent document assistant..." required></textarea>
                             <button type="submit" class="btn gradient-btn ask-btn" id="askBtn" title="Execute Query">
@@ -149,7 +173,6 @@
                         
                         <!-- TAB 1: Overview Panel -->
                         <div class="tab-pane active" id="tabOverview">
-                            <!-- High Level Dashboard Ribbon -->
                             <div class="overview-ribbon">
                                 <div class="ribbon-item">
                                     <span class="ribbon-label">Overall Verdict</span>
@@ -166,7 +189,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Synthesized Answer Canvas -->
                             <div class="premium-card final-answer-card">
                                 <div class="card-header-mini">
                                     <span class="badge answer-badge"><i class="fa-solid fa-check-double"></i> Grounded Synthesized Response</span>
@@ -178,7 +200,6 @@
                         <!-- TAB 2: Retrieval Intelligence Accordion Panel -->
                         <div class="tab-pane" id="tabRetrieval">
                             <div class="premium-card retrieval-panel-card">
-                                <!-- Top Stats Array -->
                                 <div class="retrieval-stats-row">
                                     <div class="stat-item">
                                         <span class="stat-lbl">Avg Relevance</span>
@@ -197,18 +218,13 @@
                                         <span class="verdict-tag" id="retQualityBadge">Good</span>
                                     </div>
                                 </div>
-
-                                <!-- Collapsible Accordions Array -->
-                                <div class="accordion-container" id="accordionContainer">
-                                    <!-- Injected dynamically via JavaScript -->
-                                </div>
+                                <div class="accordion-container" id="accordionContainer"></div>
                             </div>
                         </div>
 
                         <!-- TAB 3: Compact Premium Evaluation Metrics Row -->
                         <div class="tab-pane" id="tabEvaluation">
                             <div class="evaluation-metrics-row">
-                                <!-- Correctness Mini Card -->
                                 <div class="metric-compact-card">
                                     <div class="metric-top">
                                         <span class="metric-icon-wrap bg-blue"><i class="fa-solid fa-bullseye"></i></span>
@@ -216,8 +232,6 @@
                                     </div>
                                     <span class="metric-main-value highlight-text" id="evalCorrectness">0/10</span>
                                 </div>
-
-                                <!-- Confidence Mini Card -->
                                 <div class="metric-compact-card">
                                     <div class="metric-top">
                                         <span class="metric-icon-wrap bg-purple"><i class="fa-solid fa-shield-halved"></i></span>
@@ -225,8 +239,6 @@
                                     </div>
                                     <span class="metric-main-value highlight-text" id="evalConfidence">0%</span>
                                 </div>
-
-                                <!-- Hallucination Risk Mini Card -->
                                 <div class="metric-compact-card">
                                     <div class="metric-top">
                                         <span class="metric-icon-wrap bg-amber"><i class="fa-solid fa-triangle-exclamation"></i></span>
@@ -234,8 +246,6 @@
                                     </div>
                                     <span class="risk-badge" id="evalHallucination">High</span>
                                 </div>
-
-                                <!-- Completeness Mini Card -->
                                 <div class="metric-compact-card">
                                     <div class="metric-top">
                                         <span class="metric-icon-wrap bg-emerald"><i class="fa-solid fa-circle-half-stroke"></i></span>
@@ -249,7 +259,6 @@
                         <!-- TAB 4: Analysis Reasoning Panel & Performance Graph -->
                         <div class="tab-pane" id="tabAnalysis">
                             <div class="analysis-grid-layout">
-                                <!-- Top Reasoning Log -->
                                 <div class="premium-card analysis-log-card">
                                     <div class="card-header-mini">
                                         <span class="badge analysis-badge"><i class="fa-solid fa-microscope"></i> Diagnostic Verification Reasoning Log</span>
@@ -257,18 +266,13 @@
                                     <div class="reasoning-rich-text" id="evalReasonText"></div>
                                 </div>
 
-                                <!-- Bottom Visual Telemetry Graph -->
                                 <div class="premium-card telemetry-graph-card">
                                     <div class="card-header-mini">
                                         <span class="badge graph-badge"><i class="fa-solid fa-chart-column"></i> RAG Lifecycle Observability Graph</span>
                                         <span class="graph-subtitle">Telemetry comparison across ingestion, retrieval confidence, and LLM verification mapping</span>
                                     </div>
-
-                                    <!-- Elegant Pure CSS Bar Chart Graph Canvas -->
                                     <div class="observability-chart-wrapper">
                                         <div class="chart-bars-container">
-                                            
-                                            <!-- Pillar 1: Retrieval Relevance -->
                                             <div class="chart-pillar">
                                                 <div class="pillar-track">
                                                     <div class="pillar-fill bg-cyan" id="graphRetrievalFill" style="height: 0%;">
@@ -277,8 +281,6 @@
                                                 </div>
                                                 <span class="pillar-lbl">Avg Retrieval<br>Relevance</span>
                                             </div>
-
-                                            <!-- Pillar 2: Contextual Confidence -->
                                             <div class="chart-pillar">
                                                 <div class="pillar-track">
                                                     <div class="pillar-fill bg-purple" id="graphConfidenceFill" style="height: 0%;">
@@ -287,8 +289,6 @@
                                                 </div>
                                                 <span class="pillar-lbl">Grounding<br>Confidence</span>
                                             </div>
-
-                                            <!-- Pillar 3: Synthesis Correctness -->
                                             <div class="chart-pillar">
                                                 <div class="pillar-track">
                                                     <div class="pillar-fill bg-emerald" id="graphCorrectnessFill" style="height: 0%;">
@@ -297,8 +297,6 @@
                                                 </div>
                                                 <span class="pillar-lbl">Synthesis<br>Correctness</span>
                                             </div>
-
-                                            <!-- Pillar 4: Weighted Global Pipeline Index -->
                                             <div class="chart-pillar">
                                                 <div class="pillar-track">
                                                     <div class="pillar-fill bg-gradient-accent" id="graphGlobalFill" style="height: 0%;">
@@ -307,10 +305,7 @@
                                                 </div>
                                                 <span class="pillar-lbl highlight-text">Global Pipeline<br>Index</span>
                                             </div>
-
                                         </div>
-
-                                        <!-- Background Grid Lines -->
                                         <div class="chart-grid-lines">
                                             <div class="grid-line"><span class="grid-num">100%</span></div>
                                             <div class="grid-line"><span class="grid-num">75%</span></div>
@@ -331,7 +326,6 @@
 
     <!-- Frontend Interactive Control Engine -->
     <script>
-        // File Handling Nodes
         const fileDropArea = document.getElementById('fileDropArea');
         const fileInput = document.getElementById('pdfFile');
         const fileInfo = document.getElementById('fileInfo');
@@ -341,44 +335,113 @@
         const uploadBtn = document.getElementById('uploadBtn');
         const uploadStatus = document.getElementById('uploadStatus');
         
-        // Query Handling Nodes
+        const docList = document.getElementById('docList');
+        const docFilter = document.getElementById('docFilter');
+
         const askForm = document.getElementById('askForm');
         const askBtn = document.getElementById('askBtn');
         const questionInput = document.getElementById('questionInput');
         const responsePlaceholder = document.getElementById('responsePlaceholder');
         
-        // Workspace System Nodes
         const tabsNav = document.getElementById('tabsNav');
         const tabsContentWrapper = document.getElementById('tabsContentWrapper');
         const answerText = document.getElementById('answerText');
         const processingState = document.getElementById('processingState');
         const pipelineProgressBar = document.getElementById('pipelineProgressBar');
 
-        // Tab Event Wiring
+        let documentsCache = {};
+
+        // Fetch Documents
+        async function fetchDocuments() {
+            try {
+                const res = await fetch('/documents');
+                const data = await res.json();
+                if(data.status === 'success') {
+                    documentsCache = data.documents;
+                    renderDocumentManager();
+                    renderDocFilter();
+                }
+            } catch (e) {
+                console.error("Failed to fetch documents", e);
+            }
+        }
+
+        function renderDocumentManager() {
+            const docs = Object.keys(documentsCache);
+            if(docs.length === 0) {
+                docList.innerHTML = '<li class="doc-item empty-state"><i class="fa-solid fa-ghost"></i> No documents indexed yet.</li>';
+                return;
+            }
+
+            let html = '';
+            docs.forEach(doc => {
+                const info = documentsCache[doc];
+                html += `
+                    <li class="doc-item">
+                        <div class="doc-item-left">
+                            <i class="fa-solid fa-file-pdf doc-icon"></i>
+                            <div class="doc-details">
+                                <span class="doc-name">${doc}</span>
+                                <span class="doc-meta">${info.chunks} chunks • ${info.status}</span>
+                            </div>
+                        </div>
+                        <button class="delete-doc-btn" onclick="deleteDocument('${doc}')" title="Delete Index"><i class="fa-solid fa-trash-can"></i></button>
+                    </li>
+                `;
+            });
+            docList.innerHTML = html;
+        }
+
+        function renderDocFilter() {
+            const docs = Object.keys(documentsCache);
+            let html = '<option value="all">Cross-Document Retrieval (All)</option>';
+            docs.forEach(doc => {
+                html += `<option value="${doc}">Single: ${doc}</option>`;
+            });
+            docFilter.innerHTML = html;
+        }
+
+        async function deleteDocument(filename) {
+            if(!confirm(`Are you sure you want to delete ${filename}?`)) return;
+            try {
+                const res = await fetch(`/documents/${filename}`, { method: 'DELETE' });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    fetchDocuments();
+                } else {
+                    alert(data.message);
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // Initialize Data
+        window.addEventListener('DOMContentLoaded', fetchDocuments);
+
+        // Tab Wiring
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-                
                 btn.classList.add('active');
-                const targetId = btn.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active');
+                document.getElementById(btn.getAttribute('data-target')).classList.add('active');
             });
         });
 
-        // --- File Ingestion Event System ---
+        // File Drag & Drop
         ['dragenter', 'dragover'].forEach(evt => {
             fileDropArea.addEventListener(evt, (e) => {
                 e.preventDefault(); e.stopPropagation();
                 fileDropArea.classList.add('active');
-            }, false);
+            });
         });
 
         ['dragleave', 'drop'].forEach(evt => {
             fileDropArea.addEventListener(evt, (e) => {
                 e.preventDefault(); e.stopPropagation();
                 fileDropArea.classList.remove('active');
-            }, false);
+            });
         });
 
         fileDropArea.addEventListener('drop', (e) => {
@@ -392,7 +455,7 @@
 
         function updateFileInfo() {
             if (fileInput.files.length > 0) {
-                fileName.textContent = fileInput.files[0].name;
+                fileName.textContent = fileInput.files.length === 1 ? fileInput.files[0].name : `${fileInput.files.length} PDFs selected`;
                 fileDropArea.classList.add('hidden');
                 fileInfo.classList.remove('hidden');
                 uploadStatus.classList.add('hidden');
@@ -407,24 +470,29 @@
             updateFileInfo();
         });
 
-        // --- Form Upload API Action ---
+        // Upload Form
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!fileInput.files.length) {
-                showStatus('uploadStatus', 'error', 'Mount a target PDF document first.');
+                showStatus('uploadStatus', 'error', 'Mount target PDF documents first.');
                 return;
             }
 
             setButtonLoading(uploadBtn, true);
             uploadStatus.classList.add('hidden');
             const formData = new FormData();
-            formData.append('pdf_file', fileInput.files[0]);
+            Array.from(fileInput.files).forEach(file => {
+                formData.append('pdf_file', file);
+            });
 
             try {
                 const res = await fetch('/upload', { method: 'POST', body: formData });
                 const data = await res.json();
                 if (res.ok && data.status === 'success') {
                     showStatus('uploadStatus', 'success', data.message);
+                    fetchDocuments();
+                    fileInput.value = '';
+                    updateFileInfo();
                 } else {
                     showStatus('uploadStatus', 'error', data.message || 'Ingestion vector processing failed.');
                 }
@@ -435,77 +503,47 @@
             }
         });
 
-        // --- Execute Query Action Pipeline ---
+        // Ask Form
         askForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const queryText = questionInput.value.trim();
             if (!queryText) return;
 
-            if (!fileInput.files.length) {
-                alert('Please upload/select a PDF file in the left panel to establish a contextual vector baseline.');
+            if (Object.keys(documentsCache).length === 0) {
+                alert('Please upload/index at least one PDF file before querying.');
                 return;
             }
 
-            // Lock UI and reset view layers
             setButtonLoading(askBtn, true);
             responsePlaceholder.classList.add('hidden');
             tabsNav.classList.add('hidden');
             tabsContentWrapper.classList.add('hidden');
             
-            // Unhide Left Panel Observability Pipeline
             processingState.classList.remove('hidden');
-            processingState.classList.remove('fade-collapse');
             pipelineProgressBar.style.width = '0%';
 
-            // Reset Pipeline timing telemetry
             const stepRet = document.getElementById('stepRetrieval');
             const stepGen = document.getElementById('stepGeneration');
             const stepEval = document.getElementById('stepEvaluation');
-            const tRet = document.getElementById('timerRetrieval');
-            const tGen = document.getElementById('timerGeneration');
-            const tEval = document.getElementById('timerEvaluation');
-
-            stepRet.className = 'step-item active';
-            stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            tRet.textContent = '0.00s';
-
-            stepGen.className = 'step-item pending';
-            stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
-            tGen.textContent = '0.00s';
-
-            stepEval.className = 'step-item pending';
-            stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
-            tEval.textContent = '0.00s';
-
-            // High speed precision timers
-            let activePhase = 1;
-            let startT = performance.now();
-            const timerEngine = setInterval(() => {
-                const sec = ((performance.now() - startT) / 1000).toFixed(2);
-                if (activePhase === 1) tRet.textContent = sec + 's';
-                else if (activePhase === 2) tGen.textContent = sec + 's';
-                else if (activePhase === 3) tEval.textContent = sec + 's';
-            }, 30);
+            stepRet.className = 'step-item active'; stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            stepGen.className = 'step-item pending'; stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
+            stepEval.className = 'step-item pending'; stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle"></i>';
 
             setTimeout(() => { pipelineProgressBar.style.width = '20%'; }, 50);
 
-            // Phase 1 -> 2 handover simulation checkpoint
+            let activePhase = 1;
             const phase1Timer = setTimeout(() => {
                 if (activePhase === 1) {
                     activePhase = 2;
-                    startT = performance.now();
-                    stepRet.className = 'step-item completed';
-                    stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
-                    
-                    stepGen.className = 'step-item active';
-                    stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                    stepRet.className = 'step-item completed'; stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                    stepGen.className = 'step-item active'; stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
                     pipelineProgressBar.style.width = '60%';
                 }
             }, 800);
 
             const payload = new FormData();
             payload.append('question', queryText);
-            payload.append('pdf_file', fileInput.files[0]);
+            payload.append('doc_filter', docFilter.value);
 
             try {
                 const apiRes = await fetch('/ask', { method: 'POST', body: payload });
@@ -513,77 +551,54 @@
 
                 clearTimeout(phase1Timer);
                 if (activePhase === 1) {
-                    stepRet.className = 'step-item completed';
-                    stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                    stepRet.className = 'step-item completed'; stepRet.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
                 }
 
                 activePhase = 3;
-                startT = performance.now();
-                stepGen.className = 'step-item completed';
-                stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
-                
-                stepEval.className = 'step-item active';
-                stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                stepGen.className = 'step-item completed'; stepGen.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                stepEval.className = 'step-item active'; stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
                 pipelineProgressBar.style.width = '85%';
 
                 await new Promise(res => setTimeout(res, 500));
 
-                clearInterval(timerEngine);
-                stepEval.className = 'step-item completed';
-                stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
+                stepEval.className = 'step-item completed'; stepEval.querySelector('.step-indicator').innerHTML = '<i class="fa-solid fa-check"></i>';
                 pipelineProgressBar.style.width = '100%';
 
                 await new Promise(res => setTimeout(res, 350));
                 
-                // Hide pipeline observability module gracefully
                 processingState.classList.add('hidden');
 
                 if (apiRes.ok && jsonOut.status === 'success') {
-                    // Inject Synthesized Payload Data
                     answerText.innerHTML = `<p>${jsonOut.answer.replace(/\n/g, '<br>')}</p>`;
                     
                     const ev = jsonOut.evaluation || {};
-                    const corr = ev.correctness_score !== undefined ? ev.correctness_score : 0;
-                    const conf = ev.confidence_score !== undefined ? ev.confidence_score : 0;
+                    const corr = ev.correctness_score || 0;
+                    const conf = ev.confidence_score || 0;
                     const risk = ev.hallucination_risk || 'High';
                     const comp = ev.completeness || 'Low';
                     const verd = ev.verdict || 'Unreliable';
-                    const reason = ev.detailed_reason || 'No specific reasoning captured.';
+                    const reason = ev.detailed_reason || 'No reasoning captured.';
 
-                    // Overview Ribbon Mapping
-                    const overVerdEl = document.getElementById('overviewVerdict');
-                    overVerdEl.textContent = verd;
-                    overVerdEl.className = `verdict-tag verd-${verd.replace(/\s+/g, '-').toLowerCase()}`;
+                    document.getElementById('overviewVerdict').textContent = verd;
+                    document.getElementById('overviewVerdict').className = `verdict-tag verd-${verd.replace(/\s+/g, '-').toLowerCase()}`;
                     document.getElementById('overviewConfidenceVal').textContent = `${conf}%`;
-                    setTimeout(() => {
-                        document.getElementById('overviewConfidenceFill').style.width = `${conf}%`;
-                    }, 50);
+                    setTimeout(() => { document.getElementById('overviewConfidenceFill').style.width = `${conf}%`; }, 50);
 
-                    // Evaluation Tab Mapping
                     document.getElementById('evalCorrectness').textContent = `${corr}/10`;
                     document.getElementById('evalConfidence').textContent = `${conf}%`;
-                    
-                    const hallEl = document.getElementById('evalHallucination');
-                    hallEl.textContent = risk;
-                    hallEl.className = `risk-badge risk-${risk.toLowerCase()}`;
-                    
-                    const compEl = document.getElementById('evalCompleteness');
-                    compEl.textContent = comp;
-                    compEl.className = `completeness-badge comp-${comp.toLowerCase()}`;
+                    document.getElementById('evalHallucination').textContent = risk;
+                    document.getElementById('evalHallucination').className = `risk-badge risk-${risk.toLowerCase()}`;
+                    document.getElementById('evalCompleteness').textContent = comp;
+                    document.getElementById('evalCompleteness').className = `completeness-badge comp-${comp.toLowerCase()}`;
 
-                    // Analysis Tab Mapping
                     document.getElementById('evalReasonText').innerHTML = `<p>${reason.replace(/\n/g, '<br>')}</p>`;
 
-                    // Retrieval Tab Dynamic Mapping
                     const retChunks = jsonOut.retrieval_scores || [];
                     document.getElementById('retrievalCountBadge').textContent = retChunks.length;
                     
                     const accordionWrap = document.getElementById('accordionContainer');
                     if (retChunks.length > 0) {
-                        let totalScore = 0;
-                        let maxScore = -1;
-                        let minScore = 101;
-                        let itemsDom = '';
+                        let totalScore = 0, maxScore = -1, minScore = 101, itemsDom = '';
 
                         retChunks.forEach(item => {
                             const rVal = item.relevance;
@@ -591,11 +606,8 @@
                             if (rVal > maxScore) maxScore = rVal;
                             if (rVal < minScore) minScore = rVal;
 
-                            let colorTier = 'match-weak';
-                            let barTier = 'bg-weak';
-                            if (rVal >= 90) { colorTier = 'match-excellent'; barTier = 'bg-excellent'; }
-                            else if (rVal >= 70) { colorTier = 'match-strong'; barTier = 'bg-strong'; }
-                            else if (rVal >= 50) { colorTier = 'match-moderate'; barTier = 'bg-moderate'; }
+                            let colorTier = rVal >= 90 ? 'match-excellent' : rVal >= 70 ? 'match-strong' : rVal >= 50 ? 'match-moderate' : 'match-weak';
+                            let barTier = rVal >= 90 ? 'bg-excellent' : rVal >= 70 ? 'bg-strong' : rVal >= 50 ? 'bg-moderate' : 'bg-weak';
 
                             itemsDom += `
                                 <div class="accordion-item">
@@ -603,7 +615,7 @@
                                         <div class="acc-header-left">
                                             <span class="acc-toggle-icon"><i class="fa-solid fa-chevron-right"></i></span>
                                             <span class="acc-chunk-label">Chunk ${item.chunk_id}</span>
-                                            <span class="acc-page-label">Page ${item.page}</span>
+                                            <span class="acc-source-label"><i class="fa-solid fa-file-pdf"></i> ${item.source} (Page ${item.page})</span>
                                         </div>
                                         <div class="acc-header-right">
                                             <div class="acc-mini-bar-track">
@@ -614,7 +626,7 @@
                                     </div>
                                     <div class="accordion-body">
                                         <div class="acc-body-content">
-                                            <span class="preview-badge">Distance Score: ${item.raw_score.toFixed(4)}</span>
+                                            <span class="preview-badge">Distance: ${item.raw_score.toFixed(4)}</span>
                                             <p class="preview-text">${item.preview}</p>
                                         </div>
                                     </div>
@@ -627,57 +639,39 @@
                         document.getElementById('retMax').textContent = `${maxScore}%`;
                         document.getElementById('retMin').textContent = `${minScore}%`;
 
-                        let badgeText = 'Weak';
-                        let badgeStyle = 'verd-unreliable';
-                        if (avgVal >= 80) { badgeText = 'Excellent'; badgeStyle = 'verd-reliable'; }
-                        else if (avgVal >= 60) { badgeText = 'Good'; badgeStyle = 'verd-partially-reliable'; }
+                        let badgeText = avgVal >= 80 ? 'Excellent' : avgVal >= 60 ? 'Good' : 'Weak';
+                        let badgeStyle = avgVal >= 80 ? 'verd-reliable' : avgVal >= 60 ? 'verd-partially-reliable' : 'verd-unreliable';
                         
-                        const qBadge = document.getElementById('retQualityBadge');
-                        qBadge.textContent = badgeText;
-                        qBadge.className = `verdict-tag ${badgeStyle}`;
-
+                        document.getElementById('retQualityBadge').textContent = badgeText;
+                        document.getElementById('retQualityBadge').className = `verdict-tag ${badgeStyle}`;
                         accordionWrap.innerHTML = itemsDom;
                     } else {
                         accordionWrap.innerHTML = '<p class="empty-retrieval">No relevant context chunks returned above default matching thresholds.</p>';
                     }
 
-                    // Populate Telemetry Graph Values calculations
-                    let avgRetrievalScore = 0;
-                    if (retChunks.length > 0) {
-                        let tot = 0;
-                        retChunks.forEach(c => tot += c.relevance);
-                        avgRetrievalScore = Math.round(tot / retChunks.length);
-                    }
+                    let avgRetrievalScore = retChunks.length > 0 ? Math.round(retChunks.reduce((acc, c) => acc + c.relevance, 0) / retChunks.length) : 0;
                     const scaledCorrectness = corr * 10;
                     const globalIndex = Math.round((avgRetrievalScore * 0.35) + (conf * 0.35) + (scaledCorrectness * 0.30));
 
-                    // Animate graph pillars smoothly
                     setTimeout(() => {
                         document.getElementById('graphRetrievalVal').textContent = `${avgRetrievalScore}%`;
                         document.getElementById('graphRetrievalFill').style.height = `${avgRetrievalScore}%`;
-
                         document.getElementById('graphConfidenceVal').textContent = `${conf}%`;
                         document.getElementById('graphConfidenceFill').style.height = `${conf}%`;
-
                         document.getElementById('graphCorrectnessVal').textContent = `${scaledCorrectness}%`;
                         document.getElementById('graphCorrectnessFill').style.height = `${scaledCorrectness}%`;
-
                         document.getElementById('graphGlobalVal').textContent = `${globalIndex}%`;
                         document.getElementById('graphGlobalFill').style.height = `${globalIndex}%`;
                     }, 150);
 
-                    // Reveal Workspace Panels
                     tabsNav.classList.remove('hidden');
                     tabsContentWrapper.classList.remove('hidden');
-                    
-                    // Force select active tab Overview
                     document.querySelector('.tab-btn[data-target="tabOverview"]').click();
                 } else {
                     alert('Server Handshake Error: ' + (jsonOut.message || 'Validation failed.'));
                     responsePlaceholder.classList.remove('hidden');
                 }
             } catch (err) {
-                clearInterval(timerEngine);
                 processingState.classList.add('hidden');
                 alert('Connection execution failure during API synthesis.');
                 responsePlaceholder.classList.remove('hidden');
@@ -686,7 +680,6 @@
             }
         });
 
-        // --- Collapsible Accordion Delegator Logic ---
         document.getElementById('accordionContainer').addEventListener('click', (e) => {
             const head = e.target.closest('.accordion-header');
             if (head) {
@@ -695,7 +688,6 @@
             }
         });
 
-        // --- Universal Loading Status Setters ---
         function setButtonLoading(btn, isLd) {
             const txt = btn.querySelector('.btn-text');
             const ldr = btn.querySelector('.loader');

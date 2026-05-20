@@ -1,140 +1,272 @@
-# 🚀 Advanced RAG Observability Dashboard with Research-Grade Telemetry & Multi-Metric Evaluation
+# RAG Observability System
 
-An advanced, premium research-oriented **Retrieval-Augmented Generation (RAG) Observability Platform** built using **Flask**, **FAISS**, **HuggingFace Embeddings**, and the high-speed **Groq LLM Engine**.
-
-This project elevates traditional RAG from a standard conversational bot interface into a state-of-the-art enterprise observability space. Designed with a professional **2-column SaaS application layout**, it empowers researchers to ingest documents, track sub-second pipeline processing speeds, evaluate vector distance retrieval parameters, interact with collapsible context blocks, and cross-reference evaluation performance using pure-CSS visual telemetry graphs.
-
----
-
-## 🧠 Core Architecture & Enterprise Capabilities
-
-### 1. 📐 Premium 2-Column Workspace Topology
-- **Left Panel (Knowledge Base & Telemetry)**: Dedicated strictly to multi-part document ingestion, mounted PDF diagnostics, and real-time benchmark timing loops. 
-- **Right Panel (AI Research Workspace)**: Hosts query construction logic coupled with a dedicated fixed-height multi-tab observability pane, ensuring complete elimination of vertical clutter and excessive document scrolling.
-
-### 2. 🗂️ Advanced Multi-Tab Observability System
-Users can instantly toggle specific diagnostic views within the output bounding frame:
-- **[ Overview ]**: Features the primary grounded synthesis response along with a compact status ribbon displaying the overarching reliability verdict and contextual grounding confidence meter.
-- **[ Retrieval ]**: Hosts interactive chunk analysis, dynamic match-quality tier indicators, and relevance progress distributions.
-- **[ Evaluation ]**: Formatted as an aligned **4-column horizontal mini-cards grid** capturing discrete correctness scales, validation bounds, and completeness profiles.
-- **[ Analysis ]**: Contains both the raw text reasoning logs and the integrated dynamic telemetry graph.
-
-### 3. 🪗 Collapsible Retrieval Accordions with Restricted Buffers
-- **Sleek Row Ingestion**: Retrieved segments are structured as custom mini-cards featuring relevance meters and source page indicators.
-- **Internal Scroll Enclosure**: Default text previews are automatically clipped at exactly `120 characters` (`preview[:120] + "..."`). Selecting a chunk header smoothly toggles an expanded internal buffer block with independent `max-height` constraints, making deep segment verification highly intuitive.
-- **Match-Tier Mapping**:
-  - **90–100%**: Excellent Match (🟢 Emerald Green Gradient)
-  - **70–89%**: Strong Match (🔵 Sky Blue Gradient)
-  - **50–69%**: Moderate Match (🟡 Amber Yellow Gradient)
-  - **Below 50%**: Weak Match (🔴 Rose Red Gradient)
-
-### 4. 🔬 Research-Grade Answer Evaluation Framework
-Enforces strict JSON schema validation comparing generated text directly against retrieved context to assign:
-- **Correctness Score** ($0\text{--}10$)
-- **Contextual Grounding Confidence** ($0\text{--}100\%$)
-- **Hallucination Risk Tracker** (`Low` / `Medium` / `High`)
-- **Response Completeness Tier** (`Low` / `Medium` / `High`)
-- **Overall Verdict** (`Reliable` / `Partially Reliable` / `Unreliable`)
-- **Detailed Analytical Justification**
-
-### 5. 📊 RAG Lifecycle Observability Graph
-Embedded directly inside the **Analysis** tab, a custom pure-CSS multi-column telemetry chart maps real-time cross-stage metrics side-by-side:
-- **Avg Retrieval Relevance**: The combined mean similarity score of candidates returned.
-- **Grounding Confidence**: Evaluation module confidence scoring track.
-- **Synthesis Correctness**: Converted absolute correctness parameter ($10 \times \text{Score}$).
-- **Global Pipeline Index**: A weighted aggregate index summarizing generation integrity ($35\%$ retrieval, $35\%$ confidence, $30\%$ correctness).
-- Accompanied by absolute dashed horizontal guides tracking $0\%$ to $100\%$ validation intervals.
-
-### 6. ⚡ Sub-Second Benchmarking Telemetry
-- Active pipeline execution features smooth CSS looping typing animations (`Retrieving context...`).
-- Integrates live continuous decimal execution tracking intervals detailing exactly how long each phase (Ingestion, Generation, Validation) operates down to the millisecond (`0.42s`, `1.83s`).
+A research-grade Multi-Document Retrieval-Augmented Generation (RAG) platform built with Flask, FAISS, LangChain, and Groq LLMs.
+This system focuses not only on document question-answering, but also on retrieval transparency, evaluation observability, confidence analysis, and grounded response verification.
 
 ---
 
-## ⚙️ Execution Pipeline Topology
+# Overview
+
+The RAG Observability System enables users to:
+
+* Upload and index multiple PDF documents
+* Generate embeddings and persistent FAISS vector stores
+* Query across all documents or a specific document
+* Retrieve grounded contextual chunks
+* Analyze retrieval quality and confidence metrics
+* Evaluate hallucination risk and synthesis correctness
+* Visualize the internal lifecycle of the RAG pipeline
+
+The platform was designed with a research-oriented architecture emphasizing modularity, observability, and explainability.
+
+---
+
+# Core Features
+
+## Multi-Document RAG Retrieval
+
+* Upload multiple PDF documents simultaneously
+* Unified FAISS vector database
+* Cross-document semantic retrieval
+* Document-specific filtering using metadata
+
+## Retrieval Observability
+
+* Chunk-level retrieval tracking
+* Relevance score visualization
+* Source attribution
+* Page-level grounding transparency
+
+## Evaluation Layer
+
+* Confidence scoring
+* Correctness analysis
+* Completeness estimation
+* Hallucination risk detection
+
+## Analysis Dashboard
+
+* RAG lifecycle telemetry visualization
+* Retrieval confidence analytics
+* Pipeline operational metrics
+* Observability graphing
+
+## Persistent Storage
+
+* Persistent FAISS vector indices
+* Local metadata tracking
+* Stored uploaded documents
+* Survives server restarts
+
+## Modern Research Dashboard UI
+
+* Dark research-grade interface
+* Modular observability tabs
+* Cross-document retrieval selector
+* Structured document manager
+
+---
+
+# Tech Stack
+
+## Backend
+
+* Flask
+* LangChain
+* FAISS
+* SentenceTransformers
+* Groq API
+
+## Frontend
+
+* HTML
+* CSS
+* JavaScript
+
+## Embedding Model
+
+* all-MiniLM-L6-v2
+
+## LLM
+
+* Groq Llama-3 API
+
+---
+
+# System Architecture
 
 ```text
-       [ User Query Submission ]
-                   │
-                   ▼
-       [ HuggingFace Embeddings ]
-                   │
-                   ▼
-     [ FAISS Vector Distance Search ] ──▶ ( Top K=5 Distance-Scored Candidate Chunks )
-                   │                                         │
-                   ▼                                         ▼
-         [ Groq Synthesizer ]                     [ Retrieval Intelligence ]
-                   │                              ( Collapsible Accordions )
-                   ▼                                         │
-       [ Validation Evaluator ]                              │
-   ( Correctness, Confidence, Graph )                        │
-                   │                                         │
-                   ▼                                         ▼
-   ═══════════════════════════════════════════════════════════════════════
-   [ Complete Unified Presentation DOM Handover via Multi-Tab Workspace  ]
+PDF Upload
+     ↓
+Document Loader
+     ↓
+Chunking Pipeline
+     ↓
+Embedding Generation
+     ↓
+Unified FAISS Vector Store
+     ↓
+Retriever Orchestrator
+     ↓
+LLM Synthesis
+     ↓
+Evaluation Engine
+     ↓
+Observability Dashboard
 ```
 
 ---
 
-## 🛠️ Technological Foundation
-
-- **Backend Logic**: Python 3, Flask Web Server
-- **AI Vector Frameworks**: LangChain, FAISS Vector Database
-- **Embedding Subsystem**: HuggingFace Local Space Embeddings (`all-MiniLM-L6-v2`)
-- **Large Language Engine**: Groq Accelerated LLM API
-- **Frontend Orchestration**: HTML5 Semantic Layouts, Vanilla CSS Glassmorphism Variables System, ES6 Asynchronous Event Handling
-
----
-
-## 📂 Repository Topology
+# Project Structure
 
 ```text
-rag_assistant/
+backend/
 │
-├── app.py                  # Core backend routing, distance normalization, JSON API delivery
-├── utils.py                # LangChain FAISS initialization, prompt orchestration mappers
-├── requirements.txt        # Verified production dependencies mapping
-├── templates/
-│   └── index.html          # Professional 2-column client workspace layout templates
-├── static/
-│   └── style.css           # Premium sci-fi UI variables, bar charting tracks, grid tokens
-├── uploads/                # Ephemeral active document staging persistence
-└── data/                   # Local serialized FAISS vector space storage
+├── ingestion.py
+├── retriever.py
+├── evaluator.py
+├── vector_manager.py
+├── metadata_manager.py
+├── llm_manager.py
+│
+templates/
+│
+├── index.html
+│
+static/
+│
+├── style.css
+├── script.js
+│
+data/
+│
+├── vector_store/
+├── uploads/
+├── metadata.json
+│
+app.py
+requirements.txt
+README.md
 ```
 
 ---
 
-## ▶️ Setup & Local Deployment
+# Observability Components
 
-### 1. Clone the Active Project
+## Overview Tab
+
+Displays:
+
+* grounded synthesized response
+* confidence metrics
+* retrieval grounding status
+* contextual source tracking
+
+## Retrieval Tab
+
+Displays:
+
+* retrieved chunks
+* source document names
+* page references
+* relevance telemetry
+* chunk observability
+
+## Evaluation Tab
+
+Displays:
+
+* correctness score
+* hallucination probability
+* completeness analysis
+* confidence estimation
+
+## Analysis Tab
+
+Displays:
+
+* lifecycle observability graph
+* retrieval analytics
+* pipeline execution metrics
+* synthesis telemetry
+
+---
+
+# Research-Oriented Design Goals
+
+This project was designed to explore:
+
+* Retrieval transparency in RAG systems
+* Grounded answer synthesis
+* Confidence-aware generation
+* Retrieval observability
+* Hallucination analysis
+* Multi-document semantic orchestration
+
+The goal was not only to build a chatbot, but to create an inspectable and research-grade RAG pipeline.
+
+---
+
+# Future Scope
+
+Potential future improvements include:
+
+* Hybrid search (BM25 + Vector Retrieval)
+* Reranking pipelines
+* Advanced chunk scoring normalization
+* Streaming responses
+* Agentic retrieval orchestration
+* Knowledge graph integration
+* Research evaluation benchmarking
+* Docker deployment
+
+---
+
+# Installation
+
+## Clone Repository
+
 ```bash
-git clone <your-repo-link>
-cd rag_assistant
+git clone <your-repository-link>
+cd rag-observability-system
 ```
 
-### 2. Install Required Modules
+## Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Establish Authentication Parameters
-Create a localized `.env` configuration file inside the workspace root:
-```env
-GROQ_API_KEY=your_production_groq_key_here
-```
+## Run Application
 
-### 4. Invoke Dev Engine locally
 ```bash
 python app.py
-```
-Access the premium research dashboard interface locally at:
-```text
-http://127.0.0.1:5000
 ```
 
 ---
 
-## 👩‍💻 Author
-**Shreya Adsul**  
-TY B.Sc. CS (AIML)
+# Screenshots
 
+Add screenshots here:
+
+* Dashboard Overview
+* Retrieval Observability
+* Evaluation Metrics
+* Multi-Document Retrieval
+* Analysis Graphs
+
+---
+
+# Author
+
+Shreya Adsul
+
+B.Sc. AIML Student
+Research-focused AI/ML Developer
+Interested in Retrieval-Augmented Generation (RAG), AI Systems, and Explainable AI
+
+---
+
+# License
+
+This project is intended for educational, research, and portfolio purposes.

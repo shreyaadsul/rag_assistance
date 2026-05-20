@@ -3,199 +3,119 @@ from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
-# Import the existing real RAG backend functions preserved in utils.py
-from utils import load_pdf, split_text, create_embeddings, store_in_faiss, create_llm, evaluate_answer
+from backend.ingestion import process_and_store_pdf
+from backend.retriever import retrieve_context
+from backend.evaluator import evaluate_answer
+from backend.metadata_manager import get_all_documents, remove_document
+from backend.vector_manager import delete_from_vector_store
+from backend.llm_manager import create_llm
 
-# Load environment variables (e.g., GROQ_API_KEY) from .env file
 load_dotenv()
 
-# Initialize the Flask web application
 app = Flask(__name__)
 
-# Configure upload folder and permitted file extensions
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Ensure the upload directory exists before starting the app
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Global in-memory caches to prevent redundant loading overhead
-GLOBAL_VECTOR_STORES = {}
-GLOBAL_EMBEDDINGS = None
-
-def get_or_create_embeddings():
-    """
-    Returns a cached instance of HuggingFaceEmbeddings to ensure 
-    the model isn't redundantly reloaded into memory on every request.
-    """
-    global GLOBAL_EMBEDDINGS
-    if GLOBAL_EMBEDDINGS is None:
-        GLOBAL_EMBEDDINGS = create_embeddings()
-    return GLOBAL_EMBEDDINGS
-
-def process_and_store_pdf(file_path):
-    """
-    Pipeline Helper: Loads the PDF, applies smart chunking, generates embeddings,
-    initializes the FAISS vector database, and maps it in memory.
-    """
-    filename = os.path.basename(file_path)
-    
-    # Return cached FAISS vector database immediately if previously built
-    if filename in GLOBAL_VECTOR_STORES:
-        return GLOBAL_VECTOR_STORES[filename]
-        
-    print(f"[INFO] Extracting text content from uploaded PDF: {filename}")
-    pages_data = load_pdf(file_path)
-    if not pages_data:
-        raise ValueError("No extractable text found in the uploaded PDF document.")
-        
-    print("[INFO] Applying smart chunking via RecursiveCharacterTextSplitter...")
-    chunks, metadatas = split_text(pages_data, chunk_size=500, chunk_overlap=100)
-    if not chunks:
-        raise ValueError("Failed to generate document chunks.")
-        
-    print("[INFO] Generating HuggingFace embeddings and initializing FAISS database...")
-    embeddings = get_or_create_embeddings()
-    vector_store = store_in_faiss(chunks, metadatas, embeddings)
-    
-    if vector_store is None:
-        raise ValueError("FAISS vector database creation failed.")
-        
-    # Store globally for high-speed local retrievals
-    GLOBAL_VECTOR_STORES[filename] = vector_store
-    print(f"[SUCCESS] FAISS vector database ready for '{filename}' ({len(chunks)} chunks cached).")
-    return vector_store
-
 def allowed_file(filename):
-    """Verifies allowed file extension (.pdf)."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def home():
-    """
-    Route: GET /
-    Renders the existing, unmodified user interface layout.
-    """
     return render_template('index.html')
+
+@app.route('/documents', methods=['GET'])
+def list_documents():
+    """Returns the list of indexed documents and their metadata."""
+    docs = get_all_documents()
+    return jsonify({"status": "success", "documents": docs})
+
+@app.route('/documents/<filename>', methods=['DELETE'])
+def delete_document(filename):
+    """Deletes a document from vector store and metadata."""
+    try:
+        delete_from_vector_store(filename)
+        remove_document(filename)
+        # Also remove the physical file if it exists
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return jsonify({"status": "success", "message": f"Deleted {filename}"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/upload', methods=['POST'])
 def upload_pdf():
-    """
-    Route: POST /upload
-    Upload Handling Flow: Saves uploaded document securely, invokes backend 
-    chunking/embedding pipeline, and pre-warms the FAISS vector database.
-    """
+    """Handles multiple PDF uploads and ingestion."""
     if 'pdf_file' not in request.files:
         return jsonify({"status": "error", "message": "No file part in the request"}), 400
         
-    file = request.files['pdf_file']
-    if file.filename == '':
+    files = request.files.getlist('pdf_file')
+    if not files or files[0].filename == '':
         return jsonify({"status": "error", "message": "No file selected for upload"}), 400
         
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
+    processed_files = []
+    errors = []
+    
+    for file in files:
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            
+            try:
+                process_and_store_pdf(file_path)
+                processed_files.append(filename)
+            except Exception as e:
+                print(f"[ERROR] Processing error for {filename}: {e}")
+                errors.append(f"{filename}: {str(e)}")
+        else:
+            errors.append(f"{file.filename}: Invalid format")
+
+    if errors and not processed_files:
+        return jsonify({"status": "error", "message": " | ".join(errors)}), 500
         
-        try:
-            # Pre-process and cache the PDF in FAISS DB upon initial left-panel upload
-            process_and_store_pdf(file_path)
-            return jsonify({
-                "status": "success", 
-                "message": f"Successfully processed '{filename}'! FAISS vector database active and ready for queries."
-            })
-        except Exception as e:
-            print(f"[ERROR] Pipeline preparation error: {e}")
-            return jsonify({"status": "error", "message": f"Processing failure: {str(e)}"}), 500
-    else:
-        return jsonify({"status": "error", "message": "Invalid format. Upload PDF files only."}), 400
+    msg = f"Successfully processed: {', '.join(processed_files)}."
+    if errors:
+        msg += f" Errors: {', '.join(errors)}"
+        
+    return jsonify({"status": "success", "message": msg})
 
 @app.route('/ask', methods=['POST'])
 def ask_question():
-    """
-    Route: POST /ask
-    Real RAG Execution Flow:
-    1. Upload Handling: Safely reads question payload and uploaded document file.
-    2. Retrieval: Performs FAISS vector similarity search to extract top relevant chunks.
-    3. Groq Generation: Feeds context and question into ChatGroq LLM for real responses.
-    4. Evaluation Flow: Invokes existing QA evaluator framework to render scores dynamically.
-    """
-    # Safe handling for empty queries
+    """Executes the Multi-Document RAG Retrieval and Evaluation."""
     question = request.form.get('question', '').strip()
     if not question:
         return jsonify({"status": "error", "message": "Question cannot be empty."}), 400
 
-    # Safe handling for file validation
-    if 'pdf_file' not in request.files:
-        return jsonify({"status": "error", "message": "PDF document is required."}), 400
-        
-    file = request.files['pdf_file']
-    if file.filename == '':
-        return jsonify({"status": "error", "message": "No PDF file selected."}), 400
-        
-    filename = secure_filename(file.filename)
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(file_path)
+    doc_filter = request.form.get('doc_filter', 'all').strip()
 
     try:
-        # 1. Pipeline Verification: Ensure document vector store is ready
-        vector_store = process_and_store_pdf(file_path)
-
-        # 2. Retrieval Flow: Search for top k=5 relevant context snippets with distance scores
-        print(f"[INFO] Executing FAISS similarity search with scoring for query: '{question}'")
-        results_with_scores = vector_store.similarity_search_with_score(question, k=5)
+        # 1. Retrieval Flow
+        print(f"[INFO] Executing similarity search for query: '{question}' with filter: '{doc_filter}'")
+        results_with_scores, retrieval_scores, context, source_pages = retrieve_context(question, doc_filter, top_k=5)
 
         if not results_with_scores:
             return jsonify({
                 "status": "success",
-                "answer": "Unable to generate a reliable response from retrieved context. Try asking a more specific question.",
+                "answer": "Unable to generate a reliable response from retrieved context. Ensure documents are uploaded or try asking a more specific question.",
                 "evaluation": {
                     "correctness_score": 0,
                     "confidence_score": 0,
                     "hallucination_risk": "High",
                     "completeness": "Low",
                     "verdict": "Unreliable",
-                    "detailed_reason": "Query context absent from vector database. Cannot verify answer."
+                    "detailed_reason": "Query context absent from vector database."
                 },
                 "retrieval_scores": []
             })
 
-        # Process retrieved chunks and construct metadata analytics list
-        retrieval_scores = []
-        results = []
-        source_pages = []
+        sources_footer = f"\n\n[Retrieved Context Sources: {', '.join(source_pages)}]"
 
-        for idx, (doc, score) in enumerate(results_with_scores, start=1):
-            results.append(doc)
-            page_num = doc.metadata.get('page', 'Unknown')
-            if page_num not in source_pages:
-                source_pages.append(str(page_num))
-                
-            # Convert distance -> relevance percentage using normalized logic
-            # Lower distance = better match. Suggested approach: relevance = max(0, min(100, int((1 - score) * 100)))
-            relevance = max(0, min(100, int((1.0 - float(score)) * 100)))
-            
-            # Create mini chunk preview
-            preview = doc.page_content.strip()
-            if len(preview) > 120:
-                preview = preview[:120] + "..."
-                
-            retrieval_scores.append({
-                "chunk_id": idx,
-                "page": page_num,
-                "relevance": relevance,
-                "raw_score": float(score),
-                "preview": preview,
-                "content": doc.page_content
-            })
-        
-        sources_footer = f"\n\n[Retrieved Context Sources: Page(s) {', '.join(source_pages)}]"
-
-        # Aggregate context strings
-        context = "\n\n".join([doc.page_content for doc in results])
-
-        # 3. Groq Generation Flow: Assemble structured LLM prompt
+        # 2. LLM Generation
         print("[INFO] Invoking Groq LLM engine to synthesize accurate answer...")
         llm = create_llm()
         
@@ -220,17 +140,15 @@ Answer:
         response = llm.invoke(prompt)
         real_answer = response.content.strip()
 
-        # Improve Empty-State Handling if generation returns "Not found" or empty string
         if not real_answer or "not found" in real_answer.lower():
             final_rendered_answer = "Unable to generate a reliable response from retrieved context. Try asking a more specific question."
         else:
             final_rendered_answer = real_answer + sources_footer
 
-        # 4. Evaluation Flow: Run evaluation framework against combined context
+        # 3. Evaluation Flow
         print("[INFO] Performing multi-dimensional validation evaluation...")
         evaluation_result = evaluate_answer(context, real_answer)
 
-        # Return full payload dynamically consumed by unmodified index.html DOM logic
         return jsonify({
             "status": "success",
             "answer": final_rendered_answer,
@@ -243,5 +161,4 @@ Answer:
         return jsonify({"status": "error", "message": f"Server execution exception: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    # Running server locally with hot-reloading active
     app.run(debug=True, host='127.0.0.1', port=5000)
